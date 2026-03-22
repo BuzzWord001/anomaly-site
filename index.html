@@ -117,7 +117,57 @@
   <!-- Back to top -->
   <button class="back-to-top" id="backToTop" title="Наверх">&#8593;</button>
 
+  <!-- Online counter (floating) -->
+  <div class="online-counter" id="onlineCounter">
+    <span class="online-dot"></span>
+    <span id="onlineCount">0</span> в Зоне
+  </div>
+
+  <!-- Chat toggle button -->
+  <button class="chat-toggle" id="chatToggle" title="Чат Зоны">
+    <span class="chat-toggle-icon">&#9993;</span>
+    <span class="chat-badge" id="chatBadge" style="display:none">0</span>
+  </button>
+
+  <!-- Chat panel -->
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-header">
+      <div class="chat-title">&#9762; ЧАТ ЗОНЫ</div>
+      <div class="chat-online"><span class="online-dot-sm"></span> <span id="chatOnlineCount">0</span> сталкеров</div>
+      <button class="chat-close" id="chatClose">&#10005;</button>
+    </div>
+
+    <!-- Profile setup (shown first time) -->
+    <div class="chat-profile-setup" id="chatProfileSetup">
+      <p class="chat-profile-title">Представься, сталкер</p>
+      <input type="text" class="chat-input-name" id="chatNameInput" placeholder="Твой позывной..." maxlength="20">
+      <div class="chat-color-picker" id="chatColorPicker">
+        <span class="chat-color-opt selected" data-color="#d42020" style="background:#d42020"></span>
+        <span class="chat-color-opt" data-color="#e8a020" style="background:#e8a020"></span>
+        <span class="chat-color-opt" data-color="#2ecc40" style="background:#2ecc40"></span>
+        <span class="chat-color-opt" data-color="#4da6ff" style="background:#4da6ff"></span>
+        <span class="chat-color-opt" data-color="#cc66ff" style="background:#cc66ff"></span>
+        <span class="chat-color-opt" data-color="#ff6b9d" style="background:#ff6b9d"></span>
+      </div>
+      <button class="chat-btn-enter" id="chatEnterBtn">Войти в Зону</button>
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-messages" id="chatMessages" style="display:none"></div>
+
+    <!-- Input -->
+    <div class="chat-input-area" id="chatInputArea" style="display:none">
+      <input type="text" class="chat-input-msg" id="chatMsgInput" placeholder="Сообщение..." maxlength="500">
+      <button class="chat-send" id="chatSendBtn">&#9658;</button>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
   <script src="app.js"></script>
   <script src="effects.js"></script>
+  <script src="chat.js"></script>
 </body>
 </html>
