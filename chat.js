@@ -217,13 +217,22 @@
       const prevHeight = els.messages.scrollHeight;
 
       // Prepend older messages
+      // Build messages with date separators
       const frag = document.createDocumentFragment();
+      let prevDk = '';
       entries.forEach(([key, msg]) => {
         if (renderedIds.has(key)) return;
         msg._key = key;
         renderedIds.add(key);
-        const div = buildMsgEl(msg);
-        frag.appendChild(div);
+        const dk = dateKey(msg.time);
+        if (dk && dk !== prevDk) {
+          // Only add if not already in DOM
+          if (!els.messages.querySelector('[data-date="' + dk + '"]')) {
+            frag.appendChild(buildDateSeparator(msg.time));
+          }
+          prevDk = dk;
+        }
+        frag.appendChild(buildMsgEl(msg));
       });
       els.messages.prepend(frag);
 
@@ -323,6 +332,43 @@
   }
 
   // --- RENDER ---
+  const MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  let lastRenderedDate = '';
+
+  function fmtDate(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    return d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+  }
+  function dateKey(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+  }
+  function buildDateSeparator(ts) {
+    const div = document.createElement('div');
+    div.className = 'zone-chat-date-sep';
+    div.setAttribute('data-date', dateKey(ts));
+    div.innerHTML = '<span class="zone-chat-date-line"></span><span class="zone-chat-date-text">' + fmtDate(ts) + '</span><span class="zone-chat-date-line"></span>';
+    return div;
+  }
+  function maybeInsertDateSep(container, ts, prepend) {
+    const dk = dateKey(ts);
+    if (!dk) return;
+    if (prepend) {
+      // For prepended messages: check if this date separator already exists
+      if (!container.querySelector('[data-date="' + dk + '"]')) {
+        const sep = buildDateSeparator(ts);
+        container.prepend(sep);
+      }
+    } else {
+      // For appended messages: check against last rendered date
+      if (dk !== lastRenderedDate) {
+        lastRenderedDate = dk;
+        container.appendChild(buildDateSeparator(ts));
+      }
+    }
+  }
   function fmtTime(ts) {
     if (!ts) return '--:--';
     const d = new Date(ts); return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
@@ -367,6 +413,7 @@
   }
 
   function appendMsg(msg) {
+    maybeInsertDateSep(els.messages, msg.time, false);
     els.messages.appendChild(buildMsgEl(msg));
   }
 
