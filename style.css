@@ -1151,7 +1151,11 @@ footer {
 .zone-chat-edit-save:hover { color:var(--green); border-color:var(--green); }
 .zone-chat-edit-cancel:hover { color:var(--red); border-color:var(--red); }
 .zone-chat-msg.editing { background:rgba(232,160,32,0.05); border-left-color:var(--amber) !important; }
-.zone-chat-msg-system { color:var(--text-dim); font-style:italic; font-size:11px; text-align:center; padding:4px 8px; opacity:0.6; border-left:none !important; }
+.zone-chat-msg-system { color:var(--amber); font-size:10px; text-align:center; padding:6px 10px; margin:4px 0; border-left:none !important; background:linear-gradient(90deg,transparent,rgba(232,160,32,0.06),transparent); border-top:1px solid rgba(232,160,32,0.1); border-bottom:1px solid rgba(232,160,32,0.1); letter-spacing:1px; text-transform:uppercase; font-family:'Russo One',sans-serif; text-shadow:0 0 8px rgba(232,160,32,0.3); }
+.zone-sys-icon { display:inline-block; margin-right:4px; font-size:11px; vertical-align:middle; animation:sysIconPulse 2s ease-in-out infinite; }
+@keyframes sysIconPulse { 0%,100%{opacity:0.6;filter:drop-shadow(0 0 2px rgba(232,160,32,0.3))} 50%{opacity:1;filter:drop-shadow(0 0 6px rgba(232,160,32,0.6))} }
+.zone-sys-spinner { display:inline-block; width:10px; height:10px; border:1.5px solid rgba(232,160,32,0.3); border-top-color:var(--amber); border-radius:50%; animation:sysSpin 0.8s linear infinite; vertical-align:middle; margin-right:6px; }
+@keyframes sysSpin { to{transform:rotate(360deg)} }
 
 .zone-svg-emoji { display:inline-block; width:16px; height:16px; vertical-align:middle; margin:0 1px; position:relative; top:-1px; }
 .zone-emoji-badge { display:inline-block; padding:1px 6px; margin:0 2px; background:rgba(212,32,32,0.1); border:1px solid rgba(139,26,26,0.5); border-radius:3px; color:var(--amber); font-size:10px; font-family:'Share Tech Mono',monospace; letter-spacing:0.5px; text-transform:uppercase; vertical-align:middle; animation:badgeGlow 3s ease-in-out infinite; }

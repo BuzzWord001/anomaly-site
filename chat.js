@@ -158,7 +158,7 @@
     const loader = document.createElement('div');
     loader.className = 'zone-chat-msg-system';
     loader.id = 'chatLoader';
-    loader.textContent = '/// загрузка... ///';
+    loader.innerHTML = '<span class="zone-sys-spinner"></span> загрузка...';
     els.messages.prepend(loader);
 
     db.ref('messages').orderByKey().endBefore(oldestKey).limitToLast(BATCH_SIZE).once('value', snap => {
@@ -200,7 +200,7 @@
     const hint = document.createElement('div');
     hint.className = 'zone-chat-msg-system';
     hint.id = 'chatAllLoaded';
-    hint.textContent = '/// начало истории ///';
+    hint.innerHTML = '<span class="zone-sys-icon">⚠</span> начало истории чата';
     els.messages.prepend(hint);
   }
 
@@ -298,7 +298,7 @@
     if (msg.sys) {
       div.className = 'zone-chat-msg zone-chat-msg-system';
       div.setAttribute('data-mid', msg._key);
-      div.innerHTML = '<span style="opacity:0.5">///</span> ' + esc(msg.text) + ' <span style="opacity:0.5">///</span>';
+      div.innerHTML = '<span class="zone-sys-icon">☢</span> ' + esc(msg.text);
       return div;
     }
     div.className = 'zone-chat-msg' + (msg.uid === userId ? ' zone-chat-msg-own' : '');
