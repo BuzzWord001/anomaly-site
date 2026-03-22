@@ -17,18 +17,18 @@
       "name": "Elbics",
       "role": "Lead Developer",
       "focus": "Программирование, анимации, визуальные эффекты, архитектура",
-      "currentTask": "Session 13 — Full AAA CI/CD Pipeline | FULL AUDIT, 21 security fix",
+      "currentTask": "FULL AUDIT",
       "avatar": null
     },
     {
       "name": "Лир",
       "role": "Level Design / UI",
       "focus": "Карты, интерфейс, окружение, освещение",
-      "currentTask": "Dev Tracker сайт — аудио-система, auto-sync, UI | Dev Tracker аудио-система, Иконка динамика",
+      "currentTask": "Dev Tracker аудио-система",
       "avatar": null
     }
   ],
-  "lastUpdated": "2026-03-22 20:24 МСК",
+  "lastUpdated": "2026-03-22 20:28 МСК",
   "lastSyncBy": "auto-sync",
   "phases": [
     {
