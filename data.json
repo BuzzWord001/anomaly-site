@@ -1,9 +1,8 @@
 {
   "project": {
     "name": "A.N.O.M.A.L.Y. ОНЛАЙН",
-    "engine": "Unreal Engine 5.5",
-    "backend": "Rust (Axum + Tonic + Tokio)",
-    "target": "Steam Release"
+    "engine": "Unreal Engine 5",
+    "target": "Steam"
   },
   "milestoneWeights": {
     "v1.0": 1,
@@ -16,16 +15,16 @@
   "team": [
     {
       "name": "Elbics",
-      "role": "Lead / Backend",
-      "focus": "C++, Rust, Animation, VFX, Architecture",
-      "currentTask": "Phase 17 — Production Cleanup (Plans 17-01, 17-02, 17-04 in progress)",
+      "role": "Lead Developer",
+      "focus": "Программирование, анимации, визуальные эффекты, архитектура",
+      "currentTask": "Финализация ядра игры и серверной валидации",
       "avatar": null
     },
     {
       "name": "Лир",
       "role": "Level Design / UI",
-      "focus": "Zone 1 Map, UMG Screens, Foliage, Props, Lighting",
-      "currentTask": "Dev Tracker сайт + система версионности, ожидает задачи от elbics",
+      "focus": "Карты, интерфейс, окружение, освещение",
+      "currentTask": "Dev Tracker сайт, подготовка к новым задачам",
       "avatar": null
     }
   ],
@@ -35,7 +34,7 @@
     {
       "id": 1,
       "name": "Foundation",
-      "description": "Монорепо, proto-дефиниции, аутентификация, CI/CD, Docker",
+      "description": "Инфраструктура проекта, аутентификация, автотесты",
       "milestone": "v1.0",
       "status": "done",
       "plans": 5,
@@ -44,7 +43,7 @@
     {
       "id": 2,
       "name": "FPS Feel",
-      "description": "Движение, оружие, система здоровья — singleplayer FPS без сети",
+      "description": "Движение, оружие, система здоровья, стрельба, броня",
       "milestone": "v1.0",
       "status": "done",
       "plans": 8,
@@ -53,7 +52,7 @@
     {
       "id": 3,
       "name": "Networking Core",
-      "description": "GNS dedicated server, предикция, лаг-компенсация, Fog of War, EAC",
+      "description": "Сетевой код, выделенные серверы, защита от читов",
       "milestone": "v1.0",
       "status": "done",
       "plans": 6,
@@ -62,7 +61,7 @@
     {
       "id": 4,
       "name": "Inventory Service",
-      "description": "ACID-транзакции, raid lock, крэш-рикавери, стэш",
+      "description": "Серверный инвентарь, защита предметов, хранилище",
       "milestone": "v1.0",
       "status": "done",
       "plans": 7,
@@ -71,7 +70,7 @@
     {
       "id": 5,
       "name": "Core Extraction Loop",
-      "description": "Лут, экстракция, рейдовый цикл, Zone 1, World Partition",
+      "description": "Лут, экстракция, рейдовый цикл, первая карта",
       "milestone": "v1.0",
       "status": "done",
       "plans": 7,
@@ -80,7 +79,7 @@
     {
       "id": 6,
       "name": "AI Director",
-      "description": "Мутанты, патрули, BT, EQS, реакция на звук, лут с трупов",
+      "description": "Мутанты, патрули, реакция на звук, лут с врагов",
       "milestone": "v1.0",
       "status": "done",
       "plans": 8,
@@ -89,7 +88,7 @@
     {
       "id": 7,
       "name": "Anomalies & Artifacts",
-      "description": "GAS-аномалии, артефакты, детекторы, выбросы",
+      "description": "Аномальные поля, артефакты, детекторы, выбросы",
       "milestone": "v1.0",
       "status": "done",
       "plans": 6,
@@ -134,7 +133,7 @@
     {
       "id": 12,
       "name": "Skeleton & Animation Foundation",
-      "description": "12 мешей, 310 анимаций, IKRig, ретаргетинг",
+      "description": "3D-модели персонажей, 310 анимаций",
       "milestone": "v2.0",
       "status": "done",
       "plans": 3,
@@ -143,7 +142,7 @@
     {
       "id": 13,
       "name": "Character & Weapon Visual",
-      "description": "AnimBP, AimOffset, FPS руки, монтажи, AI-модели",
+      "description": "Визуал персонажей, оружие от первого лица, модели врагов",
       "milestone": "v2.0",
       "status": "done",
       "plans": 6,
@@ -152,7 +151,7 @@
     {
       "id": 14,
       "name": "Zone 1 Cordon Map",
-      "description": "Ландшафт, POI, фолиаж, пропсы, освещение, NavMesh",
+      "description": "Ландшафт, локации, растительность, пропсы, освещение",
       "milestone": "v2.0",
       "status": "done",
       "plans": 6,
@@ -161,7 +160,7 @@
     {
       "id": 15,
       "name": "VFX & Audio Pass",
-      "description": "Аномалии VFX, выстрелы, шаги, дождь, MetaSound",
+      "description": "Визуальные эффекты аномалий, выстрелы, шаги, дождь, звуки",
       "milestone": "v2.0",
       "status": "done",
       "plans": 6,
@@ -170,7 +169,7 @@
     {
       "id": 16,
       "name": "UMG UI & AI Polish",
-      "description": "HUD, меню, инвентарь, BT мутантов, EQS",
+      "description": "HUD, меню, инвентарь, поведение мутантов и солдат",
       "milestone": "v2.0",
       "status": "done",
       "plans": 8,
@@ -179,7 +178,7 @@
     {
       "id": 17,
       "name": "Production Cleanup",
-      "description": "Безопасность RPC, GNS, E2E луп, 40Hz тест",
+      "description": "Безопасность, серверная валидация, финальные тесты",
       "milestone": "v2.0",
       "status": "in_progress",
       "plans": 6,
@@ -188,7 +187,7 @@
     {
       "id": 17.5,
       "name": "Debt Payoff",
-      "description": "VFX/Audio Editor, Megascans, IKRig, аудит требований",
+      "description": "Доработка визуальных эффектов, материалов, звуков",
       "milestone": "v2.0",
       "status": "blocked",
       "plans": 7,
@@ -242,7 +241,7 @@
     {
       "id": 23,
       "name": "Performance Optimization",
-      "description": "GPU/CPU профилирование, LOD, Nanite, стриминг, 60 FPS таргет",
+      "description": "Профилирование, оптимизация графики, стриминг, 60 FPS",
       "milestone": "Alpha",
       "status": "planned",
       "plans": 6,
@@ -251,7 +250,7 @@
     {
       "id": 24,
       "name": "Security & Anti-Cheat",
-      "description": "EAC интеграция, серверная валидация, защита от эксплойтов",
+      "description": "Античит, серверная валидация, защита от эксплойтов",
       "milestone": "Alpha",
       "status": "planned",
       "plans": 5,
@@ -260,7 +259,7 @@
     {
       "id": 25,
       "name": "Server Infrastructure",
-      "description": "Hetzner деплой, автоскейлинг, мониторинг, DevOps пайплайн",
+      "description": "Серверная инфраструктура, автоскейлинг, мониторинг",
       "milestone": "Alpha",
       "status": "planned",
       "plans": 5,
