@@ -354,3 +354,152 @@
 
   requestAnimationFrame(frame);
 })();
+
+// =========================================
+// PROGRESS BAR LIGHTNING
+// =========================================
+(function() {
+  const canvas = document.getElementById('progressLightning');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  let W, H;
+  let bolts = [];
+  let timer = 0;
+  let nextBolt = 500;
+
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    W = canvas.width = rect.width || 400;
+    H = canvas.height = rect.height || 22;
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+
+  function makeBolt() {
+    const startX = Math.random() * W;
+    const pts = [{ x: startX, y: 0 }];
+    let x = startX;
+    const steps = 4 + Math.floor(Math.random() * 5);
+    const dir = (Math.random() - 0.5) * 2; // drift direction
+
+    for (let i = 0; i < steps; i++) {
+      x += dir * (5 + Math.random() * 15) + (Math.random() - 0.5) * 20;
+      const y = (i + 1) / steps * H;
+      pts.push({ x, y });
+    }
+
+    // Horizontal branch
+    const branches = [];
+    if (Math.random() < 0.6) {
+      const bi = 1 + Math.floor(Math.random() * (pts.length - 2));
+      const bp = [{ x: pts[bi].x, y: pts[bi].y }];
+      let bx = pts[bi].x;
+      const bdir = Math.random() < 0.5 ? -1 : 1;
+      for (let j = 0; j < 3; j++) {
+        bx += bdir * (8 + Math.random() * 15);
+        const by = pts[bi].y + (Math.random() - 0.5) * 6;
+        bp.push({ x: bx, y: by });
+      }
+      branches.push(bp);
+    }
+
+    return {
+      pts,
+      branches,
+      life: 0,
+      maxLife: 12 + Math.random() * 10,
+      width: 1 + Math.random() * 1.5
+    };
+  }
+
+  function drawPath(points, alpha, width) {
+    if (points.length < 2) return;
+
+    // White-hot core
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+      ctx.lineTo(points[i].x, points[i].y);
+    }
+    ctx.strokeStyle = `rgba(255, 230, 230, ${alpha})`;
+    ctx.lineWidth = width;
+    ctx.shadowColor = `rgba(255, 60, 60, ${alpha})`;
+    ctx.shadowBlur = 8;
+    ctx.stroke();
+
+    // Red outer glow
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+      ctx.lineTo(points[i].x, points[i].y);
+    }
+    ctx.strokeStyle = `rgba(220, 30, 30, ${alpha * 0.6})`;
+    ctx.lineWidth = width + 3;
+    ctx.shadowColor = `rgba(200, 0, 0, ${alpha * 0.7})`;
+    ctx.shadowBlur = 15;
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+  }
+
+  let lastTime = 0;
+
+  function frame(time) {
+    const dt = Math.min(time - lastTime, 50);
+    lastTime = time;
+    ctx.clearRect(0, 0, W, H);
+
+    // Ambient pulse glow
+    const pulse = 0.03 + 0.02 * Math.sin(time * 0.003);
+    ctx.fillStyle = `rgba(255, 50, 50, ${pulse})`;
+    ctx.fillRect(0, 0, W, H);
+
+    // Spawn bolts
+    timer += dt;
+    if (timer > nextBolt) {
+      timer = 0;
+      nextBolt = 300 + Math.random() * 1500;
+      bolts.push(makeBolt());
+      if (Math.random() < 0.3) {
+        setTimeout(() => bolts.push(makeBolt()), 50 + Math.random() * 100);
+      }
+    }
+
+    // Draw bolts
+    for (let i = bolts.length - 1; i >= 0; i--) {
+      const b = bolts[i];
+      b.life++;
+
+      let alpha;
+      if (b.life < 2) alpha = 1;
+      else if (b.life < 4) alpha = 0.3;
+      else if (b.life < 6) alpha = 0.7;
+      else alpha = Math.max(0, 1 - (b.life - 6) / (b.maxLife - 6));
+
+      if (alpha <= 0) { bolts.splice(i, 1); continue; }
+
+      drawPath(b.pts, alpha, b.width);
+      b.branches.forEach(br => drawPath(br, alpha * 0.4, b.width * 0.6));
+
+      // Flash
+      if (b.life < 3) {
+        const cx = b.pts[0].x;
+        const g = ctx.createRadialGradient(cx, H / 2, 0, cx, H / 2, 60);
+        g.addColorStop(0, `rgba(255, 80, 80, ${0.15 * alpha})`);
+        g.addColorStop(1, 'transparent');
+        ctx.fillStyle = g;
+        ctx.fillRect(cx - 60, 0, 120, H);
+      }
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  // Start after progress bar animates
+  setTimeout(() => {
+    resize();
+    requestAnimationFrame(frame);
+  }, 1800);
+})();
