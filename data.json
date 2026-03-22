@@ -18,18 +18,19 @@
       "name": "Elbics",
       "role": "Lead / Backend",
       "focus": "C++, Rust, Animation, VFX, Architecture",
-      "currentTask": "Phase 17 — Production Cleanup & Loop Validation",
+      "currentTask": "Phase 17 — Production Cleanup (Plans 17-01, 17-02, 17-04 in progress)",
       "avatar": null
     },
     {
       "name": "Лир",
       "role": "Level Design / UI",
       "focus": "Zone 1 Map, UMG Screens, Foliage, Props, Lighting",
-      "currentTask": "Сайт проекта + выбор задач",
+      "currentTask": "Dev Tracker сайт + система версионности, ожидает задачи от elbics",
       "avatar": null
     }
   ],
   "lastUpdated": "2026-03-22",
+  "lastSyncBy": "Лир",
   "phases": [
     {
       "id": 1,
@@ -333,9 +334,14 @@
     {
       "date": "2026-03-22",
       "entries": [
-        "Dev Tracker сайт запущен на GitHub Pages",
-        "Добавлены все 32 фазы разработки (v1.0 — Release)",
-        "Canvas-эффекты: молнии, частицы, аномальные кольца"
+        "Dev Tracker сайт запущен на GitHub Pages (Лир)",
+        "Добавлены все 32 фазы разработки от Foundation до Launch Day (Лир)",
+        "Взвешенный прогресс: 33% с учётом сложности этапов (Лир)",
+        "Аномальная жидкость с разноцветными молниями в шкале прогресса (Лир)",
+        "Секция Об игре, changelog, раскрываемые фазы, OG meta, favicon (Лир)",
+        "AAA-grade система версионности внедрена: auto-tagging, merge, rerere (Лир)",
+        "Автосинхронизация сайта при /sync от любого разработчика (Лир)",
+        "Elbics добавлен как collaborator в anomaly-site (Лир)"
       ]
     },
     {
