@@ -16,7 +16,7 @@
     appId: "1:869455865759:web:7ccac49785a3a69b0abfaa"
   };
 
-  const MAX_MESSAGES = 200;
+  const BATCH_SIZE = 20; // messages per load
   const STORAGE_PROFILE = 'zone_chat_profile';
   const STORAGE_UID = 'zone_chat_uid';
 
@@ -49,6 +49,7 @@
   let userId = localStorage.getItem(STORAGE_UID);
   if (!userId) { userId = 'u_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); localStorage.setItem(STORAGE_UID, userId); }
   let profile = null, emojiOpen = false, els = {}, db = null, renderedIds = new Set();
+  let oldestKey = null, loadingOlder = false, allLoaded = false;
 
   function init() {
     els = {
@@ -97,26 +98,41 @@
 
   function listenMessages() {
     if (!db) return;
-    // Load last messages
-    db.ref('messages').orderByChild('time').limitToLast(MAX_MESSAGES).on('child_added', snap => {
-      const msg = snap.val();
-      msg._key = snap.key;
-      if (renderedIds.has(snap.key)) return;
-      renderedIds.add(snap.key);
-      appendMsg(msg);
+
+    // Load last BATCH_SIZE messages initially
+    db.ref('messages').orderByKey().limitToLast(BATCH_SIZE).once('value', snap => {
+      const data = snap.val();
+      if (!data) return;
+      const entries = Object.entries(data).sort((a, b) => (a[1].time || 0) - (b[1].time || 0));
+      entries.forEach(([key, msg]) => {
+        msg._key = key;
+        renderedIds.add(key);
+        appendMsg(msg);
+      });
+      if (entries.length > 0) oldestKey = entries[0][0];
+      if (entries.length < BATCH_SIZE) allLoaded = true;
       scrollBottom();
     });
+
+    // Listen for NEW messages (after initial load)
+    setTimeout(() => {
+      db.ref('messages').orderByKey().limitToLast(1).on('child_added', snap => {
+        if (renderedIds.has(snap.key)) return;
+        const msg = snap.val();
+        msg._key = snap.key;
+        renderedIds.add(snap.key);
+        appendMsg(msg);
+        scrollBottom();
+      });
+    }, 1500);
 
     // Listen for edits
     db.ref('messages').on('child_changed', snap => {
       const msg = snap.val();
-      msg._key = snap.key;
       const el = document.querySelector('[data-mid="' + snap.key + '"]');
       if (el) {
         const textEl = el.querySelector('.zone-chat-msg-text');
-        if (textEl) {
-          textEl.innerHTML = renderEmojis(msg.text) + (msg.edited ? ' <span class="zone-chat-msg-edited">(ред.)</span>' : '');
-        }
+        if (textEl) textEl.innerHTML = renderEmojis(msg.text) + (msg.edited ? ' <span class="zone-chat-msg-edited">(ред.)</span>' : '');
       }
     });
 
@@ -126,6 +142,66 @@
       if (el) { el.style.transition = 'all 0.25s'; el.style.opacity = '0'; el.style.maxHeight = '0'; el.style.padding = '0'; el.style.overflow = 'hidden'; setTimeout(() => el.remove(), 250); }
       renderedIds.delete(snap.key);
     });
+
+    // Scroll-up to load older messages
+    els.messages.addEventListener('scroll', () => {
+      if (loadingOlder || allLoaded || !oldestKey) return;
+      if (els.messages.scrollTop < 60) loadOlderMessages();
+    });
+  }
+
+  function loadOlderMessages() {
+    if (!db || loadingOlder || allLoaded) return;
+    loadingOlder = true;
+
+    // Show loading indicator
+    const loader = document.createElement('div');
+    loader.className = 'zone-chat-msg-system';
+    loader.id = 'chatLoader';
+    loader.textContent = '/// загрузка... ///';
+    els.messages.prepend(loader);
+
+    db.ref('messages').orderByKey().endBefore(oldestKey).limitToLast(BATCH_SIZE).once('value', snap => {
+      const loaderEl = document.getElementById('chatLoader');
+      if (loaderEl) loaderEl.remove();
+
+      const data = snap.val();
+      if (!data) { allLoaded = true; loadingOlder = false; showAllLoadedHint(); return; }
+
+      const entries = Object.entries(data).sort((a, b) => (a[1].time || 0) - (b[1].time || 0));
+      if (entries.length === 0) { allLoaded = true; loadingOlder = false; showAllLoadedHint(); return; }
+      if (entries.length < BATCH_SIZE) allLoaded = true;
+
+      // Save scroll position
+      const prevHeight = els.messages.scrollHeight;
+
+      // Prepend older messages
+      const frag = document.createDocumentFragment();
+      entries.forEach(([key, msg]) => {
+        if (renderedIds.has(key)) return;
+        msg._key = key;
+        renderedIds.add(key);
+        const div = buildMsgEl(msg);
+        frag.appendChild(div);
+      });
+      els.messages.prepend(frag);
+
+      if (allLoaded) showAllLoadedHint();
+
+      // Restore scroll position
+      els.messages.scrollTop = els.messages.scrollHeight - prevHeight;
+      oldestKey = entries[0][0];
+      loadingOlder = false;
+    });
+  }
+
+  function showAllLoadedHint() {
+    if (document.getElementById('chatAllLoaded')) return;
+    const hint = document.createElement('div');
+    hint.className = 'zone-chat-msg-system';
+    hint.id = 'chatAllLoaded';
+    hint.textContent = '/// начало истории ///';
+    els.messages.prepend(hint);
   }
 
   // --- PROFILE ---
@@ -217,16 +293,14 @@
     return text.replace(/:(\w+):/g, (m, w) => TEXT_EMOJI_SET.has(w.toLowerCase()) ? '<span class="zone-emoji-badge">' + w.toLowerCase() + '</span>' : m);
   }
 
-  function appendMsg(msg) {
+  function buildMsgEl(msg) {
     const div = document.createElement('div');
     if (msg.sys) {
       div.className = 'zone-chat-msg zone-chat-msg-system';
       div.setAttribute('data-mid', msg._key);
       div.innerHTML = '<span style="opacity:0.5">///</span> ' + esc(msg.text) + ' <span style="opacity:0.5">///</span>';
-      els.messages.appendChild(div);
-      return;
+      return div;
     }
-
     div.className = 'zone-chat-msg' + (msg.uid === userId ? ' zone-chat-msg-own' : '');
     div.setAttribute('data-mid', msg._key);
     if (msg.uid !== userId && msg.color) { div.style.borderLeftColor = msg.color; div.style.borderLeftWidth = '2px'; div.style.borderLeftStyle = 'solid'; }
@@ -239,7 +313,12 @@
       h += '<button class="zone-chat-msg-del" data-del="' + msg._key + '" title="Удалить">&#10005;</button>';
       h += '</span>';
     }
-    div.innerHTML = h; els.messages.appendChild(div);
+    div.innerHTML = h;
+    return div;
+  }
+
+  function appendMsg(msg) {
+    els.messages.appendChild(buildMsgEl(msg));
   }
 
   function scrollBottom() { els.messages.scrollTop = els.messages.scrollHeight; }
