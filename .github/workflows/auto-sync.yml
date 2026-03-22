@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: '*/30 * * * *'  # Every 30 minutes
   workflow_dispatch:         # Manual trigger
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'data.json'          # Don't trigger on auto-sync's own commits
 
 permissions:
   contents: write

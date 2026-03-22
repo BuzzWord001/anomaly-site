@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  fetch('data.json')
+  fetch('data.json?v=' + Date.now())
     .then(r => r.json())
     .then(data => {
       const weights = data.milestoneWeights || {};
