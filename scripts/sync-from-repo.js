@@ -10,6 +10,8 @@ const path = require('path');
 const DATA_PATH = path.join(__dirname, '..', 'data.json');
 const TASKBOARD_PATH = process.env.TASKBOARD_PATH || '';
 const TEAM_WORK_PATH = process.env.TEAM_WORK_PATH || '';
+const TEAM_WORK_LIR_PATH = process.env.TEAM_WORK_LIR_PATH || '';
+const ANOMALY_COMMITS_PATH = process.env.ANOMALY_COMMITS_PATH || '';
 
 // --- Parse TASKBOARD.md ---
 function parseTaskboard(content) {
@@ -110,6 +112,58 @@ function parseTeamWork(content) {
   return team;
 }
 
+// --- Parse Лир's task from multiple sources ---
+function getLirTask(teamWorkMaster, teamWorkLir, anomalyCommits) {
+  // Priority: feat/zone1-art branch > master branch > anomaly-site commits
+
+  // 1. Try Лир's own branch
+  if (teamWorkLir) {
+    const parsed = parseTeamWork(teamWorkLir);
+    if (parsed.lir && parsed.lir.currentTask && !parsed.lir.currentTask.includes('БЕЗ ЗАДАЧ')) {
+      let task = parsed.lir.currentTask;
+      if (parsed.lir.recentWork.length > 0 && task.length < 60) {
+        task += ' | ' + parsed.lir.recentWork.slice(0, 2).join(', ');
+      }
+      return task;
+    }
+  }
+
+  // 2. Try master branch
+  if (teamWorkMaster) {
+    const parsed = parseTeamWork(teamWorkMaster);
+    if (parsed.lir && parsed.lir.currentTask && !parsed.lir.currentTask.includes('БЕЗ ЗАДАЧ')) {
+      let task = parsed.lir.currentTask;
+      if (parsed.lir.recentWork.length > 0 && task.length < 60) {
+        task += ' | ' + parsed.lir.recentWork.slice(0, 2).join(', ');
+      }
+      return task;
+    }
+  }
+
+  // 3. Derive from anomaly-site recent commits
+  if (anomalyCommits) {
+    const commits = anomalyCommits.split('\n').filter(l => l.trim() && !l.includes('auto-sync'));
+    if (commits.length > 0) {
+      // Summarize recent work from commit messages
+      const keywords = new Set();
+      for (const c of commits.slice(0, 10)) {
+        if (c.match(/audio|звук|трек|mp3|мелод/i)) keywords.add('аудио-система');
+        if (c.match(/glitch|глитч|иконк|icon/i)) keywords.add('UI эффекты');
+        if (c.match(/sync|синх|auto/i)) keywords.add('auto-sync');
+        if (c.match(/slider|ползун|volume|громк/i)) keywords.add('управление звуком');
+        if (c.match(/data\.json|phase|фаз/i)) keywords.add('обновление данных');
+        if (c.match(/style|css|дизайн/i)) keywords.add('дизайн');
+        if (c.match(/chat|чат|firebase/i)) keywords.add('чат');
+      }
+      if (keywords.size > 0) {
+        return 'Dev Tracker сайт: ' + [...keywords].slice(0, 3).join(', ');
+      }
+    }
+  }
+
+  return 'Dev Tracker сайт, подготовка к новым задачам';
+}
+
 // --- Update data.json ---
 function updateData(taskboardContent, teamWorkContent) {
   const data = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
@@ -139,21 +193,13 @@ function updateData(taskboardContent, teamWorkContent) {
         }
         member.currentTask = task;
       }
-      if (member.name === 'Лир' && teamWork.lir) {
-        const tw = teamWork.lir;
-        let task = tw.currentTask || member.currentTask;
-        // Если основная задача "без задач" в stalker-extraction,
-        // но есть работа над сайтом/трекером — показываем это
-        if (task.includes('БЕЗ ЗАДАЧ') || task.includes('без задач')) {
-          if (tw.recentWork.length > 0) {
-            task = tw.recentWork.slice(0, 2).join(', ');
-          } else {
-            task = 'Dev Tracker сайт, подготовка к новым задачам';
-          }
-        } else if (tw.recentWork.length > 0 && task.length < 60) {
-          task += ' | ' + tw.recentWork.slice(0, 2).join(', ');
-        }
-        member.currentTask = task;
+      if (member.name === 'Лир') {
+        // Собираем задачу из всех источников
+        let lirBranchContent = '';
+        let anomalyCommitsContent = '';
+        try { if (TEAM_WORK_LIR_PATH) lirBranchContent = fs.readFileSync(TEAM_WORK_LIR_PATH, 'utf8'); } catch(e) {}
+        try { if (ANOMALY_COMMITS_PATH) anomalyCommitsContent = fs.readFileSync(ANOMALY_COMMITS_PATH, 'utf8'); } catch(e) {}
+        member.currentTask = getLirTask(teamWorkContent, lirBranchContent, anomalyCommitsContent);
       }
     }
     // Add Developer 3 if present and has actual tasks

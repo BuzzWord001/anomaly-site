@@ -15,7 +15,7 @@ jobs:
       - name: Checkout anomaly-site
         uses: actions/checkout@v4
 
-      - name: Checkout stalker-extraction
+      - name: Checkout stalker-extraction (master)
         uses: actions/checkout@v4
         with:
           repository: elbicsabitov/stalker-extraction
@@ -25,10 +25,23 @@ jobs:
             .planning/TASKBOARD.md
             .claude-memory/team_active_work.md
 
+      - name: Get team_active_work from feat/zone1-art (Лир's branch)
+        run: |
+          cd stalker-repo
+          git fetch origin feat/zone1-art --depth=1 2>/dev/null || true
+          git show origin/feat/zone1-art:.claude-memory/team_active_work.md > /tmp/team_work_lir.md 2>/dev/null || true
+          cd ..
+
+      - name: Get Лир's recent work from anomaly-site commits
+        run: |
+          git log --oneline --since="7 days ago" --format="%s" > /tmp/anomaly_commits.txt 2>/dev/null || true
+
       - name: Run sync script
         env:
           TASKBOARD_PATH: stalker-repo/.planning/TASKBOARD.md
           TEAM_WORK_PATH: stalker-repo/.claude-memory/team_active_work.md
+          TEAM_WORK_LIR_PATH: /tmp/team_work_lir.md
+          ANOMALY_COMMITS_PATH: /tmp/anomaly_commits.txt
         run: node scripts/sync-from-repo.js
 
       - name: Check for changes
