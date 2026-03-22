@@ -1,0 +1,43 @@
+name: Auto-sync from stalker-extraction
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # Every 30 minutes
+  workflow_dispatch:         # Manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout anomaly-site
+        uses: actions/checkout@v4
+
+      - name: Checkout stalker-extraction
+        uses: actions/checkout@v4
+        with:
+          repository: elbicsabitov/stalker-extraction
+          token: ${{ secrets.STALKER_PAT }}
+          path: stalker-repo
+          sparse-checkout: |
+            .planning/TASKBOARD.md
+            .claude-memory/team_active_work.md
+
+      - name: Run sync script
+        env:
+          TASKBOARD_PATH: stalker-repo/.planning/TASKBOARD.md
+          TEAM_WORK_PATH: stalker-repo/.claude-memory/team_active_work.md
+        run: node scripts/sync-from-repo.js
+
+      - name: Check for changes
+        id: diff
+        run: |
+          git diff --quiet data.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          git commit -m "auto-sync: обновление данных из stalker-extraction"
+          git push

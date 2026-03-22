@@ -1,0 +1,180 @@
+#!/usr/bin/env node
+/**
+ * Auto-sync data.json from stalker-extraction TASKBOARD.md + team_active_work.md
+ * Runs via GitHub Actions every 30 minutes
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const DATA_PATH = path.join(__dirname, '..', 'data.json');
+const TASKBOARD_PATH = process.env.TASKBOARD_PATH || '';
+const TEAM_WORK_PATH = process.env.TEAM_WORK_PATH || '';
+
+// --- Parse TASKBOARD.md ---
+function parseTaskboard(content) {
+  const phases = [];
+  let currentPhase = null;
+
+  const lines = content.split('\n');
+
+  for (const line of lines) {
+    // Match phase headers: ## Phase 17: Production Cleanup
+    const phaseMatch = line.match(/^## Phase ([\d.]+):\s*(.+)/);
+    if (phaseMatch) {
+      if (currentPhase) phases.push(currentPhase);
+      currentPhase = {
+        id: parseFloat(phaseMatch[1]),
+        name: phaseMatch[2].trim(),
+        plans: 0,
+        plansDone: 0,
+        status: 'planned'
+      };
+      continue;
+    }
+
+    // Match plan rows: | 17-01 | description | owner | ✓ done | date | date |
+    if (currentPhase && line.match(/^\|.*\d+-\d+/)) {
+      const cols = line.split('|').map(c => c.trim()).filter(Boolean);
+      if (cols.length >= 4) {
+        currentPhase.plans++;
+        const statusCol = cols[3].toLowerCase();
+        if (statusCol.includes('done') || statusCol.includes('✓')) {
+          currentPhase.plansDone++;
+        }
+      }
+    }
+
+    // Match status from header lines: **Status:** IN PROGRESS
+    if (currentPhase) {
+      const statusMatch = line.match(/\*\*Status:\*\*\s*(.+)/i);
+      if (statusMatch) {
+        const s = statusMatch[1].toLowerCase();
+        if (s.includes('complete') || s.includes('done')) currentPhase.status = 'done';
+        else if (s.includes('progress')) currentPhase.status = 'in_progress';
+        else if (s.includes('blocked')) currentPhase.status = 'blocked';
+        else if (s.includes('ready')) currentPhase.status = 'planned';
+      }
+    }
+  }
+  if (currentPhase) phases.push(currentPhase);
+
+  // Determine status from plan completion
+  for (const p of phases) {
+    if (p.plans > 0 && p.plansDone === p.plans) {
+      p.status = 'done';
+    } else if (p.plansDone > 0 && p.plansDone < p.plans) {
+      p.status = 'in_progress';
+    }
+  }
+
+  return phases;
+}
+
+// --- Parse team_active_work.md ---
+function parseTeamWork(content) {
+  const team = {};
+  let currentDev = null;
+  let statusLine = '';
+
+  const lines = content.split('\n');
+  for (const line of lines) {
+    // Match dev headers
+    if (line.match(/^## elbics/i)) {
+      currentDev = 'elbics';
+      team[currentDev] = { currentTask: '' };
+    } else if (line.match(/^## (Лир|BuzzWord)/i)) {
+      currentDev = 'lir';
+      team[currentDev] = { currentTask: '' };
+    } else if (line.match(/^## Developer 3/i)) {
+      currentDev = 'dev3';
+      team[currentDev] = { currentTask: '' };
+    }
+
+    // Match current status line
+    if (currentDev && line.match(/^### Текущий статус:/)) {
+      statusLine = line.replace(/^### Текущий статус:\s*/, '').trim();
+      team[currentDev].currentTask = statusLine;
+    }
+  }
+
+  return team;
+}
+
+// --- Update data.json ---
+function updateData(taskboardContent, teamWorkContent) {
+  const data = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
+  const tbPhases = parseTaskboard(taskboardContent);
+  const teamWork = parseTeamWork(teamWorkContent);
+
+  // Update phase statuses from TASKBOARD
+  for (const tbPhase of tbPhases) {
+    const existing = data.phases.find(p => p.id === tbPhase.id);
+    if (existing) {
+      existing.plans = tbPhase.plans;
+      existing.plansDone = tbPhase.plansDone;
+      existing.status = tbPhase.status;
+    }
+  }
+
+  // Update team current tasks (only game-project related)
+  if (data.team) {
+    for (const member of data.team) {
+      if (member.name === 'Elbics' && teamWork.elbics) {
+        member.currentTask = teamWork.elbics.currentTask || member.currentTask;
+      }
+      if (member.name === 'Лир' && teamWork.lir) {
+        const task = teamWork.lir.currentTask;
+        // Only show game-project tasks
+        if (task && !task.toLowerCase().includes('сайт') && !task.toLowerCase().includes('site')) {
+          member.currentTask = task;
+        } else if (task) {
+          member.currentTask = task;
+        }
+      }
+    }
+    // Add Developer 3 if present in team_active_work but not in data
+    if (teamWork.dev3 && teamWork.dev3.currentTask && !teamWork.dev3.currentTask.includes('Ожидаем')) {
+      const dev3Exists = data.team.find(m => m.name === 'Developer 3');
+      if (!dev3Exists) {
+        data.team.push({
+          name: 'Developer 3',
+          role: 'TBD',
+          focus: 'Задачи назначит elbics',
+          currentTask: teamWork.dev3.currentTask,
+          avatar: null
+        });
+      }
+    }
+  }
+
+  // Update timestamp (Moscow time = UTC+3)
+  const now = new Date();
+  const msk = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+  const dateStr = msk.toISOString().slice(0, 10);
+  const timeStr = msk.toISOString().slice(11, 16);
+  data.lastUpdated = `${dateStr} ${timeStr} МСК`;
+  data.lastSyncBy = 'auto-sync';
+
+  fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2) + '\n', 'utf8');
+
+  // Check if anything actually changed
+  return true;
+}
+
+// --- Main ---
+try {
+  if (!TASKBOARD_PATH || !TEAM_WORK_PATH) {
+    console.error('Missing TASKBOARD_PATH or TEAM_WORK_PATH env vars');
+    process.exit(1);
+  }
+
+  const taskboard = fs.readFileSync(TASKBOARD_PATH, 'utf8');
+  const teamWork = fs.readFileSync(TEAM_WORK_PATH, 'utf8');
+
+  updateData(taskboard, teamWork);
+  console.log('data.json updated successfully');
+} catch (err) {
+  console.error('Sync failed:', err.message);
+  process.exit(1);
+}
