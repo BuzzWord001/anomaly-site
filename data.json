@@ -17,18 +17,18 @@
       "name": "Elbics",
       "role": "Lead Developer",
       "focus": "Программирование, анимации, визуальные эффекты, архитектура",
-      "currentTask": "FULL AUDIT",
+      "currentTask": "FULL AUDIT фаз 1-17",
       "avatar": null
     },
     {
       "name": "Лир",
       "role": "Level Design / UI",
       "focus": "Карты, интерфейс, окружение, освещение",
-      "currentTask": "Dev Tracker аудио-система",
+      "currentTask": "Dev Tracker аудио-система: OST 10 Саня БтрЪ, кроссфейд, autoplay, п...",
       "avatar": null
     }
   ],
-  "lastUpdated": "2026-03-22 20:28 МСК",
+  "lastUpdated": "2026-03-22 20:30 МСК",
   "lastSyncBy": "auto-sync",
   "phases": [
     {
