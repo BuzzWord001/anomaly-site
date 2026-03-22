@@ -85,6 +85,41 @@
     const el = document.querySelector('[data-mid="' + id + '"]');
     if (el) { el.style.transition = 'all 0.25s'; el.style.opacity = '0'; el.style.transform = 'translateX(-10px)'; el.style.maxHeight = '0'; el.style.padding = '0'; el.style.overflow = 'hidden'; setTimeout(() => el.remove(), 250); }
   }
+  function editMsg(id) {
+    const msg = messages.find(m => m.id === id);
+    if (!msg || msg.uid !== userId) return;
+    const el = document.querySelector('[data-mid="' + id + '"]');
+    if (!el || el.classList.contains('editing')) return;
+    el.classList.add('editing');
+    const textEl = el.querySelector('.zone-chat-msg-text');
+    const oldHtml = textEl.innerHTML;
+    const oldText = msg.text;
+    // Replace text with input
+    const input = document.createElement('input');
+    input.type = 'text'; input.className = 'zone-chat-edit-input'; input.value = oldText; input.maxLength = 300;
+    const actions = document.createElement('span');
+    actions.className = 'zone-chat-edit-actions';
+    actions.innerHTML = '<button class="zone-chat-edit-save" title="Сохранить">&#10003;</button><button class="zone-chat-edit-cancel" title="Отмена">&#10007;</button>';
+    textEl.innerHTML = ''; textEl.appendChild(input); textEl.appendChild(actions);
+    input.focus(); input.setSelectionRange(input.value.length, input.value.length);
+
+    function save() {
+      const newText = input.value.trim();
+      if (newText && newText !== oldText) {
+        msg.text = newText; msg.edited = true; saveMessages();
+        textEl.innerHTML = renderEmojis(newText) + ' <span class="zone-chat-msg-edited">(ред.)</span>';
+      } else {
+        textEl.innerHTML = oldHtml;
+      }
+      el.classList.remove('editing');
+    }
+    function cancel() { textEl.innerHTML = oldHtml; el.classList.remove('editing'); }
+
+    actions.querySelector('.zone-chat-edit-save').addEventListener('click', e => { e.stopPropagation(); save(); });
+    actions.querySelector('.zone-chat-edit-cancel').addEventListener('click', e => { e.stopPropagation(); cancel(); });
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); save(); } if (e.key === 'Escape') cancel(); });
+    input.addEventListener('click', e => e.stopPropagation());
+  }
 
   // --- RENDER ---
   function renderMessages() { els.messages.innerHTML = ''; messages.forEach(m => m.sys ? appendSysMsg(m) : appendMsg(m)); }
@@ -102,8 +137,13 @@
     if (msg.uid !== userId) { div.style.borderLeftColor = msg.color; div.style.borderLeftWidth = '2px'; div.style.borderLeftStyle = 'solid'; }
     let h = '<span class="zone-chat-msg-time">' + fmtTime(msg.time) + '</span>';
     h += '<span class="zone-chat-msg-name" style="color:' + esc(msg.color) + '">' + esc(msg.nickname) + ':</span>';
-    h += '<span class="zone-chat-msg-text">' + renderEmojis(msg.text) + '</span>';
-    if (msg.uid === userId) h += '<button class="zone-chat-msg-del" data-del="' + msg.id + '">&#10005;</button>';
+    h += '<span class="zone-chat-msg-text">' + renderEmojis(msg.text) + (msg.edited ? ' <span class="zone-chat-msg-edited">(ред.)</span>' : '') + '</span>';
+    if (msg.uid === userId) {
+      h += '<span class="zone-chat-msg-actions">';
+      h += '<button class="zone-chat-msg-edit" data-edit="' + msg.id + '" title="Редактировать">&#9998;</button>';
+      h += '<button class="zone-chat-msg-del" data-del="' + msg.id + '" title="Удалить">&#10005;</button>';
+      h += '</span>';
+    }
     div.innerHTML = h; els.messages.appendChild(div);
   }
   function appendSysMsg(msg) {
@@ -144,7 +184,10 @@
     els.input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addMessage(els.input.value); els.input.value = ''; } });
     els.emojiBtn.addEventListener('click', e => { e.stopPropagation(); toggleEmoji(); });
     els.emojiPanel.addEventListener('click', e => { const b = e.target.closest('.zone-chat-emoji-item'); if (b) insertEmoji(b.getAttribute('data-em')); });
-    els.messages.addEventListener('click', e => { const b = e.target.closest('.zone-chat-msg-del'); if (b) deleteMsg(b.getAttribute('data-del')); });
+    els.messages.addEventListener('click', e => {
+      const del = e.target.closest('.zone-chat-msg-del'); if (del) deleteMsg(del.getAttribute('data-del'));
+      const edit = e.target.closest('.zone-chat-msg-edit'); if (edit) editMsg(edit.getAttribute('data-edit'));
+    });
     els.collapse.addEventListener('click', () => { els.chat.classList.toggle('collapsed'); els.collapse.innerHTML = els.chat.classList.contains('collapsed') ? '&#43;' : '&minus;'; });
     els.mobileToggle.addEventListener('click', () => { const h = els.chat.classList.contains('mobile-hidden'); els.chat.classList.toggle('mobile-hidden'); els.mobileToggle.classList.toggle('active', h); });
     document.addEventListener('click', e => { if (emojiOpen && !els.emojiPanel.contains(e.target) && e.target !== els.emojiBtn) { emojiOpen = false; els.emojiPanel.style.display = 'none'; } });
