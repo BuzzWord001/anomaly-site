@@ -320,5 +320,33 @@
       "plans": 4,
       "plansDone": 0
     }
+  ],
+  "changelog": [
+    {
+      "date": "2026-03-22",
+      "entries": [
+        "Dev Tracker сайт запущен на GitHub Pages",
+        "Добавлены все 32 фазы разработки (v1.0 — Release)",
+        "Canvas-эффекты: молнии, частицы, аномальные кольца"
+      ]
+    },
+    {
+      "date": "2026-03-21",
+      "entries": [
+        "Phase 16 COMPLETE — UMG UI & AI Polish (8/8 планов)",
+        "Phase 15 COMPLETE — VFX & Audio Pass (6/6 планов)",
+        "Phase 14 COMPLETE — Zone 1 Cordon Map (6/6 планов)",
+        "Phase 17 начата — Production Cleanup",
+        "Полный аудит: найдено 29 debt items, создана Phase 17.5"
+      ]
+    },
+    {
+      "date": "2026-03-20",
+      "entries": [
+        "Phase 12 COMPLETE — 12 мешей + 310 анимаций импортированы",
+        "Phase 13 COMPLETE — Character & Weapon Visual Integration",
+        "Dev 2 (Лир) подключён к проекту"
+      ]
+    }
   ]
 }

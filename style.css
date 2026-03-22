@@ -5,6 +5,10 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   --red: #d42020;
   --red-glow: #ff3333;
@@ -699,5 +703,325 @@ footer {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ===== ABOUT SECTION ===== */
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.about-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 24px;
+  text-align: center;
+  transition: border-color 0.3s, transform 0.2s;
+}
+
+.about-card:hover {
+  border-color: var(--red);
+  transform: translateY(-3px);
+}
+
+.about-icon {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  opacity: 0.7;
+}
+
+.about-card h3 {
+  font-family: 'Russo One', sans-serif;
+  font-size: 0.95rem;
+  color: var(--red);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+.about-card p {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.about-tech {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tech-tag {
+  font-size: 0.65rem;
+  color: var(--amber);
+  border: 1px solid rgba(232, 160, 32, 0.25);
+  padding: 4px 10px;
+  border-radius: 2px;
+  letter-spacing: 1px;
+}
+
+/* ===== MILESTONE MINI PROGRESS ===== */
+.milestone-tag {
+  position: relative;
+  overflow: hidden;
+}
+
+.milestone-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--green);
+  transition: width 1s ease-out;
+}
+
+.milestone-tag.active .milestone-progress {
+  background: var(--amber);
+}
+
+.milestone-pct {
+  font-size: 0.55rem;
+  margin-left: 4px;
+  opacity: 0.7;
+}
+
+/* ===== RELATIVE DATE ===== */
+.relative-date {
+  color: var(--amber);
+  font-size: 0.75rem;
+}
+
+/* ===== EXPANDABLE PHASE ===== */
+.phase-card {
+  cursor: pointer;
+}
+
+.phase-plans-detail {
+  grid-column: 1 / -1;
+  padding: 10px 0 0 66px;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.phase-card.expanded .phase-plans-detail {
+  display: flex;
+}
+
+.plan-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.plan-check {
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  flex-shrink: 0;
+}
+
+.plan-check.done {
+  border-color: var(--green);
+  color: var(--green);
+  background: rgba(46, 204, 64, 0.1);
+}
+
+.plan-check.pending {
+  border-color: var(--text-dim);
+  color: transparent;
+}
+
+.phase-expand-hint {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  opacity: 0.4;
+  margin-left: 4px;
+  transition: opacity 0.2s;
+}
+
+.phase-card:hover .phase-expand-hint {
+  opacity: 0.8;
+}
+
+/* ===== PHASE MINI PROGRESS ===== */
+.phase-mini-progress {
+  width: 100%;
+  height: 3px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 1px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.phase-mini-progress-fill {
+  height: 100%;
+  border-radius: 1px;
+  transition: width 0.8s ease-out;
+}
+
+.phase-card.done .phase-mini-progress-fill {
+  background: var(--green);
+}
+
+.phase-card.in_progress .phase-mini-progress-fill {
+  background: var(--amber);
+}
+
+.phase-card.blocked .phase-mini-progress-fill,
+.phase-card.planned .phase-mini-progress-fill {
+  background: var(--text-dim);
+}
+
+/* ===== CHANGELOG ===== */
+.changelog-list {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.changelog-entry {
+  border-left: 2px solid var(--border);
+  padding: 0 0 24px 20px;
+  position: relative;
+}
+
+.changelog-entry:last-child {
+  border-left-color: transparent;
+  padding-bottom: 0;
+}
+
+.changelog-entry::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 6px var(--red-glow);
+}
+
+.changelog-date {
+  font-family: 'Russo One', sans-serif;
+  font-size: 0.85rem;
+  color: var(--amber);
+  margin-bottom: 8px;
+}
+
+.changelog-items {
+  list-style: none;
+}
+
+.changelog-items li {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  padding: 3px 0;
+  padding-left: 14px;
+  position: relative;
+}
+
+.changelog-items li::before {
+  content: '\25B8';
+  position: absolute;
+  left: 0;
+  color: var(--red);
+  opacity: 0.5;
+}
+
+/* ===== BACK TO TOP ===== */
+.back-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 44px;
+  height: 44px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--red);
+  font-size: 1.2rem;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+  z-index: 50;
+  font-family: 'Russo One', sans-serif;
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.back-to-top:hover {
+  background: var(--red-dark);
+  color: white;
+  border-color: var(--red);
+  box-shadow: 0 0 12px rgba(212, 32, 32, 0.4);
+}
+
+/* ===== FOOTER STATS ===== */
+.footer-stats {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+
+.footer-stat {
+  text-align: center;
+}
+
+.footer-stat-value {
+  font-family: 'Russo One', sans-serif;
+  font-size: 1.2rem;
+  color: var(--red);
+  display: block;
+}
+
+.footer-stat-label {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ===== RESPONSIVE ADDITIONS ===== */
+@media (max-width: 600px) {
+  .about-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-tech {
+    gap: 6px;
+  }
+
+  .phase-plans-detail {
+    padding-left: 50px;
+  }
+
+  .back-to-top {
+    bottom: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+  }
+
+  .footer-stats {
+    gap: 16px;
   }
 }

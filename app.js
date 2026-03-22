@@ -9,13 +9,15 @@ document.addEventListener('DOMContentLoaded', () => {
       renderFilters(data.phases);
       renderPhases(data.phases);
       setupFilters(data.phases);
+      renderChangelog(data.changelog || []);
+      renderFooterStats(data.phases);
+      setupBackToTop();
     })
     .catch(err => {
       console.error('Failed to load data.json:', err);
     });
 });
 
-// Milestone display config
 const milestoneConfig = {
   'v1.0':    { label: 'v1.0 FOUNDATION',     cssClass: 'v1' },
   'v2.0':    { label: 'v2.0 VERTICAL SLICE',  cssClass: 'v2' },
@@ -25,10 +27,24 @@ const milestoneConfig = {
   'Release': { label: 'RELEASE',              cssClass: 'release' }
 };
 
-function renderLastUpdated(date) {
-  document.getElementById('lastUpdated').textContent = date;
+// --- Relative date ---
+function relativeDate(dateStr) {
+  const now = new Date();
+  const date = new Date(dateStr + 'T00:00:00');
+  const diff = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+  if (diff === 0) return 'сегодня';
+  if (diff === 1) return 'вчера';
+  if (diff < 7) return diff + ' дн. назад';
+  if (diff < 30) return Math.floor(diff / 7) + ' нед. назад';
+  return Math.floor(diff / 30) + ' мес. назад';
 }
 
+function renderLastUpdated(date) {
+  document.getElementById('lastUpdated').textContent = date;
+  document.getElementById('lastUpdatedRelative').textContent = '(' + relativeDate(date) + ')';
+}
+
+// --- Progress bar ---
 function renderProgress(phases) {
   const totalPlans = phases.reduce((s, p) => s + p.plans, 0);
   const donePlans = phases.reduce((s, p) => s + p.plansDone, 0);
@@ -42,6 +58,7 @@ function renderProgress(phases) {
   }, 300);
 }
 
+// --- Milestone tags with mini progress ---
 function renderMilestoneTags(phases) {
   const container = document.getElementById('milestoneTags');
   const milestones = [...new Set(phases.map(p => p.milestone))];
@@ -52,14 +69,22 @@ function renderMilestoneTags(phases) {
     const allDone = phasesInM.every(p => p.status === 'done');
     const anyActive = phasesInM.some(p => p.status === 'in_progress');
 
+    const totalP = phasesInM.reduce((s, p) => s + p.plans, 0);
+    const doneP = phasesInM.reduce((s, p) => s + p.plansDone, 0);
+    const pct = totalP > 0 ? Math.round((doneP / totalP) * 100) : 0;
+
     let stateClass = '';
     if (allDone) stateClass = 'done';
     else if (anyActive) stateClass = 'active';
 
-    return `<span class="milestone-tag ${stateClass}">${config.label}</span>`;
+    return `<span class="milestone-tag ${stateClass}">
+      ${config.label}<span class="milestone-pct">${pct}%</span>
+      <span class="milestone-progress" style="width: ${pct}%"></span>
+    </span>`;
   }).join('');
 }
 
+// --- Team ---
 function renderTeam(team) {
   const grid = document.getElementById('teamGrid');
   grid.innerHTML = team.map((member, i) => `
@@ -76,6 +101,7 @@ function renderTeam(team) {
   `).join('');
 }
 
+// --- Filters ---
 function renderFilters(phases) {
   const container = document.getElementById('milestoneFilters');
   const milestones = [...new Set(phases.map(p => p.milestone))];
@@ -88,6 +114,7 @@ function renderFilters(phases) {
   container.innerHTML = html;
 }
 
+// --- Phases with expandable plans ---
 function renderPhases(phases, filter) {
   filter = filter || 'all';
   const list = document.getElementById('phasesList');
@@ -104,6 +131,23 @@ function renderPhases(phases, filter) {
       ? `${phase.plansDone}/${phase.plans}`
       : '\u2014';
 
+    // Mini progress width
+    const miniPct = phase.plans > 0 ? Math.round((phase.plansDone / phase.plans) * 100) : 0;
+
+    // Plan items for expandable detail
+    let plansHtml = '';
+    if (phase.plans > 0) {
+      const items = [];
+      for (let p = 1; p <= phase.plans; p++) {
+        const done = p <= phase.plansDone;
+        items.push(`<div class="plan-item">
+          <span class="plan-check ${done ? 'done' : 'pending'}">${done ? '\u2714' : ''}</span>
+          <span>Plan ${phaseNum}-${String(p).padStart(2, '0')}</span>
+        </div>`);
+      }
+      plansHtml = `<div class="phase-plans-detail">${items.join('')}</div>`;
+    }
+
     return `
       <div class="phase-card ${statusClass} fade-in" style="animation-delay: ${i * 0.04}s" data-milestone="${phase.milestone}">
         <div class="phase-number">${phaseNum}</div>
@@ -111,16 +155,28 @@ function renderPhases(phases, filter) {
           <div class="phase-name">
             ${phase.name}
             <span class="phase-milestone-badge ${config.cssClass}">${phase.milestone}</span>
+            ${phase.plans > 0 ? '<span class="phase-expand-hint">\u25BC</span>' : ''}
           </div>
           <div class="phase-desc">${phase.description}</div>
+          <div class="phase-mini-progress"><div class="phase-mini-progress-fill" style="width: ${miniPct}%"></div></div>
         </div>
         <div class="phase-status">
           <span class="plans-count">${plansText}</span>
           <span class="status-icon ${statusClass}">${statusIcon}</span>
         </div>
+        ${plansHtml}
       </div>
     `;
   }).join('');
+
+  // Setup click-to-expand
+  list.querySelectorAll('.phase-card').forEach(card => {
+    card.addEventListener('click', () => {
+      card.classList.toggle('expanded');
+      const hint = card.querySelector('.phase-expand-hint');
+      if (hint) hint.textContent = card.classList.contains('expanded') ? '\u25B2' : '\u25BC';
+    });
+  });
 }
 
 function getStatusIcon(status) {
@@ -139,5 +195,63 @@ function setupFilters(phases) {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     e.target.classList.add('active');
     renderPhases(phases, e.target.dataset.filter);
+  });
+}
+
+// --- Changelog ---
+function renderChangelog(changelog) {
+  const container = document.getElementById('changelogList');
+  if (!changelog.length) {
+    container.innerHTML = '<p style="text-align:center;color:var(--text-dim);">Нет записей</p>';
+    return;
+  }
+
+  container.innerHTML = changelog.map((entry, i) => `
+    <div class="changelog-entry fade-in" style="animation-delay: ${i * 0.1}s">
+      <div class="changelog-date">${entry.date} <span class="relative-date">${relativeDate(entry.date)}</span></div>
+      <ul class="changelog-items">
+        ${entry.entries.map(e => `<li>${e}</li>`).join('')}
+      </ul>
+    </div>
+  `).join('');
+}
+
+// --- Footer stats ---
+function renderFooterStats(phases) {
+  const container = document.getElementById('footerStats');
+  const totalPhases = phases.length;
+  const donePhases = phases.filter(p => p.status === 'done').length;
+  const totalPlans = phases.reduce((s, p) => s + p.plans, 0);
+  const donePlans = phases.reduce((s, p) => s + p.plansDone, 0);
+  const inProgress = phases.filter(p => p.status === 'in_progress').length;
+
+  container.innerHTML = `
+    <div class="footer-stat">
+      <span class="footer-stat-value">${totalPhases}</span>
+      <span class="footer-stat-label">Фаз</span>
+    </div>
+    <div class="footer-stat">
+      <span class="footer-stat-value">${donePhases}/${totalPhases}</span>
+      <span class="footer-stat-label">Завершено</span>
+    </div>
+    <div class="footer-stat">
+      <span class="footer-stat-value">${donePlans}/${totalPlans}</span>
+      <span class="footer-stat-label">Планов</span>
+    </div>
+    <div class="footer-stat">
+      <span class="footer-stat-value">${inProgress}</span>
+      <span class="footer-stat-label">В работе</span>
+    </div>
+  `;
+}
+
+// --- Back to top ---
+function setupBackToTop() {
+  const btn = document.getElementById('backToTop');
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('visible', window.scrollY > 400);
+  });
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 }
