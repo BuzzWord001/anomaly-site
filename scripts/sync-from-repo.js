@@ -104,7 +104,12 @@ function parseTeamWork(content) {
 
     // Collect recent work items (bullet points with key achievements)
     if (line.match(/^- \*\*.*\*\*/)) {
-      const item = line.replace(/^- \*\*/, '').replace(/\*\*.*/, '').trim();
+      // "- **FULL AUDIT** фаз 1-17 (268 файлов)" → "Полный аудит фаз 1-17"
+      let item = line.replace(/^- /, '').replace(/\*\*/g, '').trim();
+      // Убираем скобки с техническими деталями
+      item = item.replace(/\s*\([^)]*\)\s*/g, ' ').trim();
+      // Ограничиваем длину
+      if (item.length > 70) item = item.slice(0, 67) + '...';
       if (item) team[currentDev].recentWork.push(item);
     }
   }
