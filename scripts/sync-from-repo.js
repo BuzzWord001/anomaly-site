@@ -75,26 +75,35 @@ function parseTaskboard(content) {
 function parseTeamWork(content) {
   const team = {};
   let currentDev = null;
-  let statusLine = '';
 
   const lines = content.split('\n');
   for (const line of lines) {
     // Match dev headers
     if (line.match(/^## elbics/i)) {
       currentDev = 'elbics';
-      team[currentDev] = { currentTask: '' };
+      team[currentDev] = { currentTask: '', recentWork: [] };
     } else if (line.match(/^## (Лир|BuzzWord)/i)) {
       currentDev = 'lir';
-      team[currentDev] = { currentTask: '' };
+      team[currentDev] = { currentTask: '', recentWork: [] };
     } else if (line.match(/^## Developer 3/i)) {
       currentDev = 'dev3';
-      team[currentDev] = { currentTask: '' };
+      team[currentDev] = { currentTask: '', recentWork: [] };
+    } else if (line.match(/^## /) && currentDev) {
+      // Another section (e.g. "## Server State") — stop parsing current dev
+      currentDev = null;
     }
 
+    if (!currentDev) continue;
+
     // Match current status line
-    if (currentDev && line.match(/^### Текущий статус:/)) {
-      statusLine = line.replace(/^### Текущий статус:\s*/, '').trim();
-      team[currentDev].currentTask = statusLine;
+    if (line.match(/^### Текущий статус:/)) {
+      team[currentDev].currentTask = line.replace(/^### Текущий статус:\s*/, '').trim();
+    }
+
+    // Collect recent work items (bullet points with key achievements)
+    if (line.match(/^- \*\*.*\*\*/)) {
+      const item = line.replace(/^- \*\*/, '').replace(/\*\*.*/, '').trim();
+      if (item) team[currentDev].recentWork.push(item);
     }
   }
 
@@ -117,23 +126,37 @@ function updateData(taskboardContent, teamWorkContent) {
     }
   }
 
-  // Update team current tasks (only game-project related)
+  // Update team current tasks — всё связанное с проектом игры
+  // (включая сайт, трекер, UI, карты, бэкенд и т.д.)
   if (data.team) {
     for (const member of data.team) {
       if (member.name === 'Elbics' && teamWork.elbics) {
-        member.currentTask = teamWork.elbics.currentTask || member.currentTask;
+        const tw = teamWork.elbics;
+        // Берём статус + первые достижения для контекста
+        let task = tw.currentTask || member.currentTask;
+        if (tw.recentWork.length > 0 && task.length < 60) {
+          task += ' | ' + tw.recentWork.slice(0, 2).join(', ');
+        }
+        member.currentTask = task;
       }
       if (member.name === 'Лир' && teamWork.lir) {
-        const task = teamWork.lir.currentTask;
-        // Only show game-project tasks
-        if (task && !task.toLowerCase().includes('сайт') && !task.toLowerCase().includes('site')) {
-          member.currentTask = task;
-        } else if (task) {
-          member.currentTask = task;
+        const tw = teamWork.lir;
+        let task = tw.currentTask || member.currentTask;
+        // Если основная задача "без задач" в stalker-extraction,
+        // но есть работа над сайтом/трекером — показываем это
+        if (task.includes('БЕЗ ЗАДАЧ') || task.includes('без задач')) {
+          if (tw.recentWork.length > 0) {
+            task = tw.recentWork.slice(0, 2).join(', ');
+          } else {
+            task = 'Dev Tracker сайт, подготовка к новым задачам';
+          }
+        } else if (tw.recentWork.length > 0 && task.length < 60) {
+          task += ' | ' + tw.recentWork.slice(0, 2).join(', ');
         }
+        member.currentTask = task;
       }
     }
-    // Add Developer 3 if present in team_active_work but not in data
+    // Add Developer 3 if present and has actual tasks
     if (teamWork.dev3 && teamWork.dev3.currentTask && !teamWork.dev3.currentTask.includes('Ожидаем')) {
       const dev3Exists = data.team.find(m => m.name === 'Developer 3');
       if (!dev3Exists) {
@@ -144,6 +167,8 @@ function updateData(taskboardContent, teamWorkContent) {
           currentTask: teamWork.dev3.currentTask,
           avatar: null
         });
+      } else {
+        dev3Exists.currentTask = teamWork.dev3.currentTask;
       }
     }
   }
