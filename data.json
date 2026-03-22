@@ -28,7 +28,7 @@
       "avatar": null
     }
   ],
-  "lastUpdated": "2026-03-22 11:15 МСК",
+  "lastUpdated": "2026-03-22 21:30 МСК",
   "lastSyncBy": "Лир",
   "phases": [
     {
@@ -180,18 +180,18 @@
       "name": "Production Cleanup",
       "description": "Безопасность, серверная валидация, финальные тесты",
       "milestone": "v2.0",
-      "status": "in_progress",
+      "status": "done",
       "plans": 6,
-      "plansDone": 0
+      "plansDone": 6
     },
     {
       "id": 17.5,
       "name": "Debt Payoff",
       "description": "Доработка визуальных эффектов, материалов, звуков",
       "milestone": "v2.0",
-      "status": "blocked",
+      "status": "in_progress",
       "plans": 7,
-      "plansDone": 0
+      "plansDone": 3
     },
     {
       "id": 18,
@@ -333,12 +333,13 @@
     {
       "date": "2026-03-22",
       "entries": [
+        "Phase 17 COMPLETE — Production Cleanup (6/6 планов) (Elbics)",
+        "Phase 17.5 IN PROGRESS — Debt Payoff (3/7 планов) (Elbics)",
+        "Dedicated Server Setup завершён: Docker, GNS, E2E тест (Elbics)",
+        "Добавлен атмосферный звук Зоны — OST 10 Саня БтрЪ (Лир)",
+        "Иконка динамика с глитч-эффектом + ползунок громкости (Лир)",
         "Dev Tracker сайт запущен на GitHub Pages (Лир)",
         "Добавлены все 32 фазы разработки от Foundation до Launch Day (Лир)",
-        "Взвешенный прогресс: 33% с учётом сложности этапов (Лир)",
-        "Аномальная жидкость с разноцветными молниями в шкале прогресса (Лир)",
-        "Секция Об игре, changelog, раскрываемые фазы, OG meta, favicon (Лир)",
-        "AAA-grade система версионности внедрена: auto-tagging, merge, rerere (Лир)",
         "Автосинхронизация сайта при /sync от любого разработчика (Лир)",
         "Elbics добавлен как collaborator в anomaly-site (Лир)"
       ]
