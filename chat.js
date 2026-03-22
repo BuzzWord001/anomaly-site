@@ -1,16 +1,26 @@
 /* ============================================
    ZONE CHAT — STALKER EXTRACTION
-   Pro design, colored SVG emojis, backdrop blur
+   Firebase Realtime Database — live chat
    ============================================ */
 (function() {
   'use strict';
 
-  const MAX_MESSAGES = 100;
+  // --- FIREBASE CONFIG ---
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyCLGYlEA0jo9Zxcw5Lpm-ONsS8cwsI2rY8",
+    authDomain: "anomaly-chat.firebaseapp.com",
+    databaseURL: "https://anomaly-chat-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "anomaly-chat",
+    storageBucket: "anomaly-chat.firebasestorage.app",
+    messagingSenderId: "869455865759",
+    appId: "1:869455865759:web:7ccac49785a3a69b0abfaa"
+  };
+
+  const MAX_MESSAGES = 200;
   const STORAGE_PROFILE = 'zone_chat_profile';
-  const STORAGE_MESSAGES = 'zone_chat_messages';
   const STORAGE_UID = 'zone_chat_uid';
 
-  // --- COLORED SVG EMOJIS (18x18 viewBox) ---
+  // --- COLORED SVG EMOJIS ---
   const SVG_EMOJIS = {
     '☢': '<svg class="zone-svg-emoji" viewBox="0 0 18 18"><circle cx="9" cy="9" r="2.2" fill="#c8d820"/><path d="M9 1.5A7.5 7.5 0 0 0 1.5 9h3.3a4.2 4.2 0 0 1 2.1-3.64L5.25 2.4A7.45 7.45 0 0 0 9 1.5z" fill="#b8cc00" opacity="0.9"/><path d="M16.5 9A7.5 7.5 0 0 0 12.75 2.4l-1.65 2.96A4.2 4.2 0 0 1 13.2 9h3.3z" fill="#b8cc00" opacity="0.9"/><path d="M9 16.5a7.45 7.45 0 0 0 3.75-1.02l-1.65-2.96a4.2 4.2 0 0 1-4.2 0L5.25 15.48A7.45 7.45 0 0 0 9 16.5z" fill="#b8cc00" opacity="0.9"/><circle cx="9" cy="9" r="2.2" fill="#eeff33" style="filter:drop-shadow(0 0 3px rgba(200,216,32,0.8))"/></svg>',
     '⚠': '<svg class="zone-svg-emoji" viewBox="0 0 18 18"><path d="M9 1.5L1 16h16L9 1.5z" fill="none" stroke="#e8a020" stroke-width="1.3" stroke-linejoin="round"/><path d="M9 3.5L2.5 15h13L9 3.5z" fill="rgba(232,160,32,0.15)"/><line x1="9" y1="7" x2="9" y2="11.5" stroke="#e8a020" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="13.5" r="0.8" fill="#e8a020"/></svg>',
@@ -38,7 +48,7 @@
   // --- STATE ---
   let userId = localStorage.getItem(STORAGE_UID);
   if (!userId) { userId = 'u_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); localStorage.setItem(STORAGE_UID, userId); }
-  let profile = null, messages = [], emojiOpen = false, els = {};
+  let profile = null, emojiOpen = false, els = {}, db = null, renderedIds = new Set();
 
   function init() {
     els = {
@@ -50,8 +60,72 @@
       color: document.getElementById('profileColor'), saveBtn: document.getElementById('profileSaveBtn'),
       onlineCount: document.getElementById('onlineCount'), mobileToggle: document.getElementById('chatMobileToggle')
     };
-    loadProfile(); loadMessages(); buildEmojiPanel(); bindEvents(); simulateOnline();
+
+    initFirebase();
+    loadProfile();
+    buildEmojiPanel();
+    bindEvents();
     if (window.innerWidth <= 600) els.chat.classList.add('mobile-hidden');
+  }
+
+  // --- FIREBASE ---
+  function initFirebase() {
+    if (typeof firebase === 'undefined') { console.warn('Firebase SDK not loaded'); return; }
+    try {
+      firebase.initializeApp(FIREBASE_CONFIG);
+      db = firebase.database();
+    } catch(e) { console.error('Firebase init failed:', e); }
+  }
+
+  function setupPresence() {
+    if (!db || !profile) return;
+    const myRef = db.ref('presence/' + userId);
+    const connRef = db.ref('.info/connected');
+
+    connRef.on('value', snap => {
+      if (snap.val() === true) {
+        myRef.onDisconnect().remove();
+        myRef.set({ name: profile.nickname, color: profile.color, t: firebase.database.ServerValue.TIMESTAMP });
+      }
+    });
+
+    // Listen to online count
+    db.ref('presence').on('value', snap => {
+      els.onlineCount.textContent = snap.numChildren() || 1;
+    });
+  }
+
+  function listenMessages() {
+    if (!db) return;
+    // Load last messages
+    db.ref('messages').orderByChild('time').limitToLast(MAX_MESSAGES).on('child_added', snap => {
+      const msg = snap.val();
+      msg._key = snap.key;
+      if (renderedIds.has(snap.key)) return;
+      renderedIds.add(snap.key);
+      appendMsg(msg);
+      scrollBottom();
+    });
+
+    // Listen for edits
+    db.ref('messages').on('child_changed', snap => {
+      const msg = snap.val();
+      msg._key = snap.key;
+      const el = document.querySelector('[data-mid="' + snap.key + '"]');
+      if (el) {
+        const textEl = el.querySelector('.zone-chat-msg-text');
+        if (textEl) {
+          textEl.innerHTML = renderEmojis(msg.text) + (msg.edited ? ' <span class="zone-chat-msg-edited">(ред.)</span>' : '');
+        }
+      }
+    });
+
+    // Listen for deletes
+    db.ref('messages').on('child_removed', snap => {
+      const el = document.querySelector('[data-mid="' + snap.key + '"]');
+      if (el) { el.style.transition = 'all 0.25s'; el.style.opacity = '0'; el.style.maxHeight = '0'; el.style.padding = '0'; el.style.overflow = 'hidden'; setTimeout(() => el.remove(), 250); }
+      renderedIds.delete(snap.key);
+    });
   }
 
   // --- PROFILE ---
@@ -59,100 +133,115 @@
     try { const s = localStorage.getItem(STORAGE_PROFILE); if (s) { profile = JSON.parse(s); showChat(); } else showProfile(); } catch(e) { showProfile(); }
   }
   function showProfile() { els.profilePanel.style.display = 'flex'; els.body.style.display = 'none'; }
-  function showChat() { els.profilePanel.style.display = 'none'; els.body.style.display = 'flex'; renderMessages(); scrollBottom(); }
+  function showChat() {
+    els.profilePanel.style.display = 'none'; els.body.style.display = 'flex';
+    setupPresence();
+    listenMessages();
+  }
   function saveProfile() {
     const nick = els.nickname.value.trim();
     if (!nick) { els.nickname.style.borderColor = '#ff4444'; els.nickname.focus(); return; }
     profile = { nickname: nick, color: els.color.value };
     localStorage.setItem(STORAGE_PROFILE, JSON.stringify(profile));
-    showChat(); addSystemMsg(profile.nickname + ' входит в Зону');
+    showChat();
+    // System message
+    if (db) {
+      db.ref('messages').push({ uid: '__sys__', text: nick + ' входит в Зону', time: firebase.database.ServerValue.TIMESTAMP, sys: true });
+    }
   }
 
   // --- MESSAGES ---
-  function loadMessages() { try { const s = localStorage.getItem(STORAGE_MESSAGES); if (s) messages = JSON.parse(s); } catch(e) { messages = []; } }
-  function saveMessages() { if (messages.length > MAX_MESSAGES) messages = messages.slice(-MAX_MESSAGES); localStorage.setItem(STORAGE_MESSAGES, JSON.stringify(messages)); }
   function addMessage(text) {
     text = text.trim(); if (!text || !profile) return;
-    const msg = { id: 'm_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), uid: userId, nickname: profile.nickname, color: profile.color, text, time: Date.now() };
-    messages.push(msg); saveMessages(); appendMsg(msg); scrollBottom();
-  }
-  function addSystemMsg(text) {
-    const msg = { id: 's_' + Date.now(), uid: '__sys__', text, time: Date.now(), sys: true };
-    messages.push(msg); saveMessages(); appendSysMsg(msg); scrollBottom();
-  }
-  function deleteMsg(id) {
-    messages = messages.filter(m => m.id !== id); saveMessages();
-    const el = document.querySelector('[data-mid="' + id + '"]');
-    if (el) { el.style.transition = 'all 0.25s'; el.style.opacity = '0'; el.style.transform = 'translateX(-10px)'; el.style.maxHeight = '0'; el.style.padding = '0'; el.style.overflow = 'hidden'; setTimeout(() => el.remove(), 250); }
-  }
-  function editMsg(id) {
-    const msg = messages.find(m => m.id === id);
-    if (!msg || msg.uid !== userId) return;
-    const el = document.querySelector('[data-mid="' + id + '"]');
-    if (!el || el.classList.contains('editing')) return;
-    el.classList.add('editing');
-    const textEl = el.querySelector('.zone-chat-msg-text');
-    const oldHtml = textEl.innerHTML;
-    const oldText = msg.text;
-    // Replace text with input
-    const input = document.createElement('input');
-    input.type = 'text'; input.className = 'zone-chat-edit-input'; input.value = oldText; input.maxLength = 300;
-    const actions = document.createElement('span');
-    actions.className = 'zone-chat-edit-actions';
-    actions.innerHTML = '<button class="zone-chat-edit-save" title="Сохранить">&#10003;</button><button class="zone-chat-edit-cancel" title="Отмена">&#10007;</button>';
-    textEl.innerHTML = ''; textEl.appendChild(input); textEl.appendChild(actions);
-    input.focus(); input.setSelectionRange(input.value.length, input.value.length);
-
-    function save() {
-      const newText = input.value.trim();
-      if (newText && newText !== oldText) {
-        msg.text = newText; msg.edited = true; saveMessages();
-        textEl.innerHTML = renderEmojis(newText) + ' <span class="zone-chat-msg-edited">(ред.)</span>';
-      } else {
-        textEl.innerHTML = oldHtml;
-      }
-      el.classList.remove('editing');
+    if (db) {
+      db.ref('messages').push({
+        uid: userId, nickname: profile.nickname, color: profile.color,
+        text: text, time: firebase.database.ServerValue.TIMESTAMP
+      });
     }
-    function cancel() { textEl.innerHTML = oldHtml; el.classList.remove('editing'); }
+  }
 
-    actions.querySelector('.zone-chat-edit-save').addEventListener('click', e => { e.stopPropagation(); save(); });
-    actions.querySelector('.zone-chat-edit-cancel').addEventListener('click', e => { e.stopPropagation(); cancel(); });
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); save(); } if (e.key === 'Escape') cancel(); });
-    input.addEventListener('click', e => e.stopPropagation());
+  function deleteMsg(key) {
+    if (db) db.ref('messages/' + key).remove();
+  }
+
+  function editMsg(key) {
+    if (!db) return;
+    const el = document.querySelector('[data-mid="' + key + '"]');
+    if (!el || el.classList.contains('editing')) return;
+
+    // Read current text from Firebase
+    db.ref('messages/' + key).once('value', snap => {
+      const msg = snap.val();
+      if (!msg || msg.uid !== userId) return;
+
+      el.classList.add('editing');
+      const textEl = el.querySelector('.zone-chat-msg-text');
+      const oldHtml = textEl.innerHTML;
+
+      const input = document.createElement('input');
+      input.type = 'text'; input.className = 'zone-chat-edit-input'; input.value = msg.text; input.maxLength = 300;
+      const actions = document.createElement('span');
+      actions.className = 'zone-chat-edit-actions';
+      actions.innerHTML = '<button class="zone-chat-edit-save" title="Сохранить">&#10003;</button><button class="zone-chat-edit-cancel" title="Отмена">&#10007;</button>';
+      textEl.innerHTML = ''; textEl.appendChild(input); textEl.appendChild(actions);
+      input.focus(); input.setSelectionRange(input.value.length, input.value.length);
+
+      function save() {
+        const newText = input.value.trim();
+        if (newText && newText !== msg.text) {
+          db.ref('messages/' + key).update({ text: newText, edited: true });
+        } else {
+          textEl.innerHTML = oldHtml;
+        }
+        el.classList.remove('editing');
+      }
+      function cancel() { textEl.innerHTML = oldHtml; el.classList.remove('editing'); }
+
+      actions.querySelector('.zone-chat-edit-save').addEventListener('click', e => { e.stopPropagation(); save(); });
+      actions.querySelector('.zone-chat-edit-cancel').addEventListener('click', e => { e.stopPropagation(); cancel(); });
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); save(); } if (e.key === 'Escape') cancel(); });
+      input.addEventListener('click', e => e.stopPropagation());
+    });
   }
 
   // --- RENDER ---
-  function renderMessages() { els.messages.innerHTML = ''; messages.forEach(m => m.sys ? appendSysMsg(m) : appendMsg(m)); }
-  function fmtTime(ts) { const d = new Date(ts); return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0'); }
+  function fmtTime(ts) {
+    if (!ts) return '--:--';
+    const d = new Date(ts); return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+  }
   function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
   function renderEmojis(text) {
     text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     for (const [ch, svg] of Object.entries(SVG_EMOJIS)) { while (text.indexOf(ch) !== -1) text = text.replace(ch, svg); }
     return text.replace(/:(\w+):/g, (m, w) => TEXT_EMOJI_SET.has(w.toLowerCase()) ? '<span class="zone-emoji-badge">' + w.toLowerCase() + '</span>' : m);
   }
+
   function appendMsg(msg) {
     const div = document.createElement('div');
+    if (msg.sys) {
+      div.className = 'zone-chat-msg zone-chat-msg-system';
+      div.setAttribute('data-mid', msg._key);
+      div.innerHTML = '<span style="opacity:0.5">///</span> ' + esc(msg.text) + ' <span style="opacity:0.5">///</span>';
+      els.messages.appendChild(div);
+      return;
+    }
+
     div.className = 'zone-chat-msg' + (msg.uid === userId ? ' zone-chat-msg-own' : '');
-    div.setAttribute('data-mid', msg.id);
-    if (msg.uid !== userId) { div.style.borderLeftColor = msg.color; div.style.borderLeftWidth = '2px'; div.style.borderLeftStyle = 'solid'; }
+    div.setAttribute('data-mid', msg._key);
+    if (msg.uid !== userId && msg.color) { div.style.borderLeftColor = msg.color; div.style.borderLeftWidth = '2px'; div.style.borderLeftStyle = 'solid'; }
     let h = '<span class="zone-chat-msg-time">' + fmtTime(msg.time) + '</span>';
-    h += '<span class="zone-chat-msg-name" style="color:' + esc(msg.color) + '">' + esc(msg.nickname) + ':</span>';
+    h += '<span class="zone-chat-msg-name" style="color:' + esc(msg.color || '#ccc') + '">' + esc(msg.nickname || 'Сталкер') + ':</span>';
     h += '<span class="zone-chat-msg-text">' + renderEmojis(msg.text) + (msg.edited ? ' <span class="zone-chat-msg-edited">(ред.)</span>' : '') + '</span>';
     if (msg.uid === userId) {
       h += '<span class="zone-chat-msg-actions">';
-      h += '<button class="zone-chat-msg-edit" data-edit="' + msg.id + '" title="Редактировать">&#9998;</button>';
-      h += '<button class="zone-chat-msg-del" data-del="' + msg.id + '" title="Удалить">&#10005;</button>';
+      h += '<button class="zone-chat-msg-edit" data-edit="' + msg._key + '" title="Редактировать">&#9998;</button>';
+      h += '<button class="zone-chat-msg-del" data-del="' + msg._key + '" title="Удалить">&#10005;</button>';
       h += '</span>';
     }
     div.innerHTML = h; els.messages.appendChild(div);
   }
-  function appendSysMsg(msg) {
-    const div = document.createElement('div');
-    div.className = 'zone-chat-msg zone-chat-msg-system';
-    div.setAttribute('data-mid', msg.id);
-    div.innerHTML = '<span style="opacity:0.5">///</span> ' + esc(msg.text) + ' <span style="opacity:0.5">///</span>';
-    els.messages.appendChild(div);
-  }
+
   function scrollBottom() { els.messages.scrollTop = els.messages.scrollHeight; }
 
   // --- EMOJI PANEL ---
@@ -168,12 +257,6 @@
     const v = els.input.value, pos = els.input.selectionStart || v.length;
     const sp = (pos > 0 && v[pos-1] !== ' ') ? ' ' : '';
     els.input.value = v.slice(0, pos) + sp + em + ' ' + v.slice(pos); els.input.focus();
-  }
-
-  // --- ONLINE (demo) ---
-  function simulateOnline() {
-    els.onlineCount.textContent = Math.floor(Math.random() * 10) + 2;
-    setInterval(() => { const c = parseInt(els.onlineCount.textContent) || 3; els.onlineCount.textContent = Math.max(1, Math.min(20, c + (Math.random() > 0.5 ? 1 : -1))); }, 15000);
   }
 
   // --- EVENTS ---
