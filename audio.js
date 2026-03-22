@@ -222,43 +222,62 @@ const ZoneAudio = (() => {
     });
     slider.addEventListener('click', (e) => e.stopPropagation());
 
-    // --- Максимально агрессивный автозапуск ---
-    const events = ['click', 'touchstart', 'touchend', 'mousemove', 'mousedown',
-                     'scroll', 'keydown', 'pointerdown', 'pointerup', 'focus',
-                     'visibilitychange', 'wheel'];
+    // --- AUTOPLAY STRATEGY ---
+    // Browsers allow muted autoplay. We start muted, then unmute on first interaction.
+    // This way the track is already playing — user hears it instantly on first gesture.
+
+    const interactionEvents = ['click', 'touchstart', 'touchend', 'mousemove', 'mousedown',
+                               'scroll', 'keydown', 'pointerdown', 'pointerup', 'wheel'];
 
     function removeListeners() {
-      events.forEach(ev => document.removeEventListener(ev, onInteraction, { capture: true }));
+      interactionEvents.forEach(ev => document.removeEventListener(ev, onInteraction, { capture: true }));
     }
 
     function onInteraction() {
-      if (isUnlocked || !wantPlay) return;
+      if (isUnlocked) return;
+      if (!wantPlay) { removeListeners(); return; }
+
+      // Unmute the already-playing track
+      if (isPlaying && activeAudio) {
+        activeAudio.muted = false;
+        activeAudio.volume = volume;
+        isUnlocked = true;
+        removeListeners();
+        return;
+      }
+
+      // Or start fresh if not playing yet
       tryPlay();
-      // Retry a few times in case first attempt still fails
-      if (!isPlaying) {
+      if (isPlaying) {
+        removeListeners();
+      } else {
         setTimeout(tryPlay, 100);
         setTimeout(tryPlay, 300);
       }
-      if (isUnlocked) removeListeners();
     }
 
-    // Attempt 1: immediate
+    // Step 1: Try normal autoplay with sound
     tryPlay();
 
-    // Attempt 2: after a microtask
-    Promise.resolve().then(tryPlay);
-
-    // Attempt 3: next frame
-    requestAnimationFrame(tryPlay);
-
-    // Attempt 4: short delay (some browsers allow after page settles)
-    setTimeout(tryPlay, 500);
-    setTimeout(tryPlay, 1500);
-
-    // Fallback: any user gesture
     if (!isPlaying) {
-      events.forEach(ev => {
-        document.addEventListener(ev, onInteraction, { capture: true, passive: true });
+      // Step 2: Start MUTED — browsers always allow this
+      initAudio();
+      activeAudio.muted = true;
+      activeAudio.volume = 0;
+      activeAudio.currentTime = 0;
+      activeAudio.play().then(() => {
+        isPlaying = true;
+        startCrossfadeLoop(activeAudio);
+        updateUI();
+        // Now wait for interaction to unmute
+        interactionEvents.forEach(ev => {
+          document.addEventListener(ev, onInteraction, { capture: true, passive: true });
+        });
+      }).catch(() => {
+        // Even muted failed — pure fallback to interaction
+        interactionEvents.forEach(ev => {
+          document.addEventListener(ev, onInteraction, { capture: true, passive: true });
+        });
       });
     }
   }
