@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A.N.O.M.A.L.Y. ОНЛАЙН — Dev Tracker</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Russo+One&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Scanline overlay -->
+  <div class="scanlines"></div>
+
+  <!-- Background -->
+  <div class="bg-overlay"></div>
+
+  <!-- Side effects -->
+  <canvas id="sideEffects" class="side-effects-canvas"></canvas>
+
+  <!-- Header -->
+  <header>
+    <div class="header-content">
+      <h1 class="title glitch" data-text="A.N.O.M.A.L.Y. ОНЛАЙН">A.N.O.M.A.L.Y. ОНЛАЙН</h1>
+      <p class="subtitle">DEV TRACKER <span class="blink">_</span></p>
+      <p class="last-updated">Последнее обновление: <span id="lastUpdated">—</span></p>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-section">
+      <div class="progress-label">
+        <span class="progress-text">ОБЩИЙ ПРОГРЕСС РАЗРАБОТКИ</span>
+        <span class="progress-percent" id="progressPercent">0%</span>
+      </div>
+      <div class="progress-bar-outer">
+        <div class="progress-bar-inner" id="progressBar"></div>
+        <div class="progress-bar-glow" id="progressBarGlow"></div>
+      </div>
+      <div class="progress-milestones" id="milestoneTags"></div>
+    </div>
+  </header>
+
+  <!-- Team section -->
+  <section class="team-section">
+    <h2 class="section-title"><span class="icon">&#9760;</span> КОМАНДА <span class="icon">&#9760;</span></h2>
+    <div class="team-grid" id="teamGrid"></div>
+  </section>
+
+  <!-- Phases section -->
+  <section class="phases-section">
+    <h2 class="section-title"><span class="icon">&#9762;</span> ПЛАН РАЗРАБОТКИ <span class="icon">&#9762;</span></h2>
+
+    <!-- Milestone filters -->
+    <div class="milestone-filters" id="milestoneFilters"></div>
+
+    <div class="phases-list" id="phasesList"></div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <p class="footer-warning">&#9888; ДОСТУП ОГРАНИЧЕН &#9888;</p>
+      <p class="footer-text">Внутренний трекер разработки. Не для публичного распространения.</p>
+      <p class="footer-tech">UE 5.5 &bull; Rust &bull; PostgreSQL &bull; Steam</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="effects.js"></script>
+</body>
+</html>

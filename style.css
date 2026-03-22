@@ -1,0 +1,703 @@
+/* ===== RESET & BASE ===== */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --red: #d42020;
+  --red-glow: #ff3333;
+  --red-dark: #8b1a1a;
+  --green: #2ecc40;
+  --green-glow: #39ff14;
+  --green-dark: #1a7a2a;
+  --amber: #e8a020;
+  --amber-glow: #ffb627;
+  --bg-dark: #0a0a0a;
+  --bg-card: rgba(15, 15, 15, 0.85);
+  --bg-card-hover: rgba(25, 25, 25, 0.9);
+  --text: #c8c8c8;
+  --text-dim: #666;
+  --text-bright: #e8e8e8;
+  --border: rgba(212, 32, 32, 0.3);
+  --border-green: rgba(46, 204, 64, 0.3);
+}
+
+body {
+  background: var(--bg-dark);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ===== BACKGROUND ===== */
+.bg-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('assets/bg.jpg') center 35% / cover no-repeat fixed;
+  z-index: -2;
+}
+
+.bg-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60%;
+  background:
+    radial-gradient(ellipse at 15% 30%, rgba(200, 50, 80, 0.08) 0%, transparent 30%),
+    radial-gradient(ellipse at 85% 25%, rgba(180, 40, 70, 0.07) 0%, transparent 30%);
+  animation: lightning-ambient 6s ease-in-out infinite alternate;
+  z-index: -1;
+  pointer-events: none;
+}
+
+@keyframes lightning-ambient {
+  0%, 80% { opacity: 0.4; }
+  85% { opacity: 1; }
+  87% { opacity: 0.3; }
+  90% { opacity: 0.9; }
+  100% { opacity: 0.4; }
+}
+
+.bg-overlay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(10,0,0,0.15) 0%, rgba(10,0,0,0.5) 40%, rgba(10,10,10,0.88) 70%, rgba(10,10,10,0.97) 100%);
+  z-index: -1;
+}
+
+/* ===== SIDE EFFECTS CANVAS ===== */
+.side-effects-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ===== SCANLINES ===== */
+.scanlines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 100;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+}
+
+/* ===== HEADER ===== */
+header {
+  text-align: center;
+  padding: 60px 20px 40px;
+  position: relative;
+}
+
+.title {
+  font-family: 'Russo One', sans-serif;
+  font-size: clamp(1.8rem, 5vw, 3.5rem);
+  color: var(--red);
+  text-shadow:
+    0 0 20px rgba(212, 32, 32, 0.6),
+    0 0 60px rgba(212, 32, 32, 0.3),
+    0 0 100px rgba(212, 32, 32, 0.15);
+  letter-spacing: 4px;
+  margin-bottom: 8px;
+}
+
+/* Glitch effect */
+.glitch {
+  position: relative;
+  animation: glitch-skew 8s infinite linear alternate-reverse;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+}
+
+.glitch::before {
+  color: var(--red-glow);
+  animation: glitch-1 3s infinite linear alternate-reverse;
+  clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+  z-index: -1;
+}
+
+.glitch::after {
+  color: #ff6633;
+  animation: glitch-2 2.5s infinite linear alternate-reverse;
+  clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+  z-index: -1;
+}
+
+@keyframes glitch-1 {
+  0%, 90% { transform: translate(0); }
+  91% { transform: translate(-3px, 1px); }
+  93% { transform: translate(3px, -1px); }
+  95% { transform: translate(-2px, 0); }
+  97% { transform: translate(2px, 1px); }
+  100% { transform: translate(0); }
+}
+
+@keyframes glitch-2 {
+  0%, 88% { transform: translate(0); }
+  89% { transform: translate(3px, -1px); }
+  92% { transform: translate(-3px, 1px); }
+  94% { transform: translate(1px, 0); }
+  96% { transform: translate(-1px, -1px); }
+  100% { transform: translate(0); }
+}
+
+@keyframes glitch-skew {
+  0%, 95% { transform: skew(0deg); }
+  96% { transform: skew(0.5deg); }
+  97% { transform: skew(-0.3deg); }
+  98% { transform: skew(0.2deg); }
+  100% { transform: skew(0deg); }
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: var(--amber);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.blink {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.last-updated {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress-section {
+  max-width: 900px;
+  margin: 30px auto 0;
+  padding: 0 20px;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.progress-text {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  letter-spacing: 3px;
+}
+
+.progress-percent {
+  font-family: 'Russo One', sans-serif;
+  font-size: 1.8rem;
+  color: var(--red);
+  text-shadow: 0 0 15px rgba(212, 32, 32, 0.5);
+}
+
+.progress-bar-outer {
+  width: 100%;
+  height: 22px;
+  background: rgba(20, 20, 20, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar-outer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 8px,
+    rgba(255, 255, 255, 0.03) 8px,
+    rgba(255, 255, 255, 0.03) 9px
+  );
+  z-index: 2;
+}
+
+.progress-bar-inner {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--red-dark), var(--red), var(--red-glow));
+  transition: width 1.5s ease-out;
+  position: relative;
+  z-index: 1;
+}
+
+.progress-bar-glow {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  left: 0;
+  width: 0%;
+  background: transparent;
+  box-shadow: 0 0 15px var(--red-glow), 0 0 30px rgba(212, 32, 32, 0.3);
+  transition: width 1.5s ease-out;
+  z-index: 0;
+  border-radius: 2px;
+}
+
+.progress-milestones {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.milestone-tag {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  border: 1px solid rgba(100, 100, 100, 0.2);
+  border-radius: 2px;
+}
+
+.milestone-tag.done {
+  color: var(--green);
+  border-color: var(--border-green);
+}
+
+.milestone-tag.active {
+  color: var(--amber);
+  border-color: rgba(232, 160, 32, 0.3);
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-color: rgba(232, 160, 32, 0.3); }
+  50% { border-color: rgba(232, 160, 32, 0.7); }
+}
+
+/* ===== SECTIONS ===== */
+section {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.section-title {
+  font-family: 'Russo One', sans-serif;
+  font-size: 1.4rem;
+  color: var(--red);
+  text-align: center;
+  letter-spacing: 4px;
+  margin-bottom: 30px;
+  text-shadow: 0 0 10px rgba(212, 32, 32, 0.3);
+}
+
+.icon {
+  font-size: 1rem;
+  opacity: 0.6;
+}
+
+/* ===== TEAM ===== */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.team-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s, transform 0.2s;
+}
+
+.team-card:hover {
+  border-color: var(--red);
+  transform: translateY(-2px);
+  background: var(--bg-card-hover);
+}
+
+.team-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--red);
+  box-shadow: 0 0 10px var(--red-glow);
+}
+
+.team-card .name {
+  font-family: 'Russo One', sans-serif;
+  font-size: 1.3rem;
+  color: var(--text-bright);
+  margin-bottom: 4px;
+}
+
+.team-card .role {
+  font-size: 0.8rem;
+  color: var(--amber);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.team-card .focus {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+
+.team-card .current-task-label {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.team-card .current-task {
+  font-size: 0.9rem;
+  color: var(--green);
+  padding: 8px 12px;
+  background: rgba(46, 204, 64, 0.06);
+  border: 1px solid var(--border-green);
+  border-radius: 3px;
+}
+
+.team-card .status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green-glow);
+  margin-right: 6px;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--green-glow); }
+  50% { opacity: 0.5; box-shadow: 0 0 12px var(--green-glow); }
+}
+
+/* ===== MILESTONE FILTERS ===== */
+.milestone-filters {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.filter-btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid rgba(100, 100, 100, 0.3);
+  padding: 6px 16px;
+  cursor: pointer;
+  border-radius: 2px;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  color: var(--text);
+  border-color: var(--red);
+}
+
+.filter-btn.active {
+  color: var(--red);
+  border-color: var(--red);
+  background: rgba(212, 32, 32, 0.1);
+}
+
+/* ===== PHASE CARDS ===== */
+.phases-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.phase-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: 50px 1fr auto;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.phase-card:hover {
+  background: var(--bg-card-hover);
+  transform: translateX(4px);
+}
+
+.phase-card.done {
+  border-color: var(--border-green);
+}
+
+.phase-card.done:hover {
+  border-color: var(--green);
+}
+
+.phase-card.in_progress {
+  border-color: rgba(232, 160, 32, 0.4);
+  animation: pulse-card 3s infinite;
+}
+
+@keyframes pulse-card {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: 0 0 12px rgba(232, 160, 32, 0.15); }
+}
+
+.phase-card.blocked {
+  opacity: 0.5;
+}
+
+.phase-card.planned {
+  opacity: 0.35;
+}
+
+/* Phase number */
+.phase-number {
+  font-family: 'Russo One', sans-serif;
+  font-size: 1.5rem;
+  color: var(--text-dim);
+  text-align: center;
+  line-height: 1;
+}
+
+.phase-card.done .phase-number {
+  color: var(--green);
+}
+
+.phase-card.in_progress .phase-number {
+  color: var(--amber);
+}
+
+/* Phase info */
+.phase-info {
+  min-width: 0;
+}
+
+.phase-name {
+  font-family: 'Russo One', sans-serif;
+  font-size: 1rem;
+  color: var(--text-bright);
+  margin-bottom: 4px;
+}
+
+.phase-card.done .phase-name {
+  color: var(--green);
+}
+
+.phase-desc {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.3;
+}
+
+.phase-milestone-badge {
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  border-radius: 2px;
+  margin-left: 8px;
+  vertical-align: middle;
+  letter-spacing: 1px;
+}
+
+.phase-milestone-badge.v1 {
+  color: var(--green);
+  border: 1px solid var(--border-green);
+}
+
+.phase-milestone-badge.v2 {
+  color: var(--amber);
+  border: 1px solid rgba(232, 160, 32, 0.3);
+}
+
+.phase-milestone-badge.v21 {
+  color: var(--text-dim);
+  border: 1px solid rgba(100, 100, 100, 0.3);
+}
+
+.phase-milestone-badge.alpha {
+  color: #cc66ff;
+  border: 1px solid rgba(204, 102, 255, 0.3);
+}
+
+.phase-milestone-badge.beta {
+  color: #4da6ff;
+  border: 1px solid rgba(77, 166, 255, 0.3);
+}
+
+.phase-milestone-badge.release {
+  color: var(--green);
+  border: 1px solid var(--border-green);
+}
+
+/* Phase status */
+.phase-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.status-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.status-icon.done {
+  color: var(--green);
+  text-shadow: 0 0 8px var(--green-glow);
+}
+
+.status-icon.in_progress {
+  color: var(--amber);
+  animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.status-icon.blocked {
+  color: var(--text-dim);
+}
+
+.status-icon.planned {
+  color: rgba(100, 100, 100, 0.4);
+}
+
+.plans-count {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.phase-card.done .plans-count {
+  color: var(--green-dark);
+}
+
+/* ===== FOOTER ===== */
+footer {
+  text-align: center;
+  padding: 40px 20px 30px;
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+}
+
+.footer-warning {
+  font-family: 'Russo One', sans-serif;
+  color: var(--red);
+  font-size: 0.85rem;
+  letter-spacing: 4px;
+  margin-bottom: 8px;
+  text-shadow: 0 0 10px rgba(212, 32, 32, 0.3);
+}
+
+.footer-text {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.footer-tech {
+  font-size: 0.7rem;
+  color: rgba(100, 100, 100, 0.5);
+  letter-spacing: 2px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 600px) {
+  .phase-card {
+    grid-template-columns: 40px 1fr auto;
+    padding: 14px 12px;
+    gap: 10px;
+  }
+
+  .phase-number {
+    font-size: 1.1rem;
+  }
+
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .progress-milestones {
+    justify-content: center;
+  }
+
+  .milestone-filters {
+    flex-wrap: wrap;
+  }
+}
+
+/* ===== ANIMATIONS ===== */
+.fade-in {
+  opacity: 0;
+  transform: translateY(15px);
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

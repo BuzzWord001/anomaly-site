@@ -1,0 +1,324 @@
+{
+  "project": {
+    "name": "A.N.O.M.A.L.Y. ОНЛАЙН",
+    "engine": "Unreal Engine 5.5",
+    "backend": "Rust (Axum + Tonic + Tokio)",
+    "target": "Steam Release"
+  },
+  "team": [
+    {
+      "name": "Elbics",
+      "role": "Lead / Backend",
+      "focus": "C++, Rust, Animation, VFX, Architecture",
+      "currentTask": "Phase 17 — Production Cleanup & Loop Validation",
+      "avatar": null
+    },
+    {
+      "name": "Лир",
+      "role": "Level Design / UI",
+      "focus": "Zone 1 Map, UMG Screens, Foliage, Props, Lighting",
+      "currentTask": "Сайт проекта + выбор задач",
+      "avatar": null
+    }
+  ],
+  "lastUpdated": "2026-03-22",
+  "phases": [
+    {
+      "id": 1,
+      "name": "Foundation",
+      "description": "Монорепо, proto-дефиниции, аутентификация, CI/CD, Docker",
+      "milestone": "v1.0",
+      "status": "done",
+      "plans": 5,
+      "plansDone": 5
+    },
+    {
+      "id": 2,
+      "name": "FPS Feel",
+      "description": "Движение, оружие, система здоровья — singleplayer FPS без сети",
+      "milestone": "v1.0",
+      "status": "done",
+      "plans": 8,
+      "plansDone": 8
+    },
+    {
+      "id": 3,
+      "name": "Networking Core",
+      "description": "GNS dedicated server, предикция, лаг-компенсация, Fog of War, EAC",
+      "milestone": "v1.0",
+      "status": "done",
+      "plans": 6,
+      "plansDone": 6
+    },
+    {
+      "id": 4,
+      "name": "Inventory Service",
+      "description": "ACID-транзакции, raid lock, крэш-рикавери, стэш",
+      "milestone": "v1.0",
+      "status": "done",
+      "plans": 7,
+      "plansDone": 7
+    },
+    {
+      "id": 5,
+      "name": "Core Extraction Loop",
+      "description": "Лут, экстракция, рейдовый цикл, Zone 1, World Partition",
+      "milestone": "v1.0",
+      "status": "done",
+      "plans": 7,
+      "plansDone": 7
+    },
+    {
+      "id": 6,
+      "name": "AI Director",
+      "description": "Мутанты, патрули, BT, EQS, реакция на звук, лут с трупов",
+      "milestone": "v1.0",
+      "status": "done",
+      "plans": 8,
+      "plansDone": 8
+    },
+    {
+      "id": 7,
+      "name": "Anomalies & Artifacts",
+      "description": "GAS-аномалии, артефакты, детекторы, выбросы",
+      "milestone": "v1.0",
+      "status": "done",
+      "plans": 6,
+      "plansDone": 6
+    },
+    {
+      "id": 8,
+      "name": "Economy & Traders",
+      "description": "Торговцы, фракции, квесты, страховка, цикл экономики",
+      "milestone": "v1.0",
+      "status": "done",
+      "plans": 8,
+      "plansDone": 8
+    },
+    {
+      "id": 9,
+      "name": "Squad & Matchmaking",
+      "description": "Группы, голосовой чат, матчмейкинг, Zone 2",
+      "milestone": "v1.0",
+      "status": "done",
+      "plans": 8,
+      "plansDone": 8
+    },
+    {
+      "id": 10,
+      "name": "Seasons & Progression",
+      "description": "XP, уровни, сезонные вайпы, косметика, Steam",
+      "milestone": "v1.0",
+      "status": "done",
+      "plans": 7,
+      "plansDone": 7
+    },
+    {
+      "id": 11,
+      "name": "Early Access Polish",
+      "description": "Оптимизация, нагрузочный тест, мониторинг, очередь логина",
+      "milestone": "v1.0",
+      "status": "done",
+      "plans": 6,
+      "plansDone": 6
+    },
+    {
+      "id": 12,
+      "name": "Skeleton & Animation Foundation",
+      "description": "12 мешей, 310 анимаций, IKRig, ретаргетинг",
+      "milestone": "v2.0",
+      "status": "done",
+      "plans": 3,
+      "plansDone": 3
+    },
+    {
+      "id": 13,
+      "name": "Character & Weapon Visual",
+      "description": "AnimBP, AimOffset, FPS руки, монтажи, AI-модели",
+      "milestone": "v2.0",
+      "status": "done",
+      "plans": 6,
+      "plansDone": 6
+    },
+    {
+      "id": 14,
+      "name": "Zone 1 Cordon Map",
+      "description": "Ландшафт, POI, фолиаж, пропсы, освещение, NavMesh",
+      "milestone": "v2.0",
+      "status": "done",
+      "plans": 6,
+      "plansDone": 6
+    },
+    {
+      "id": 15,
+      "name": "VFX & Audio Pass",
+      "description": "Аномалии VFX, выстрелы, шаги, дождь, MetaSound",
+      "milestone": "v2.0",
+      "status": "done",
+      "plans": 6,
+      "plansDone": 6
+    },
+    {
+      "id": 16,
+      "name": "UMG UI & AI Polish",
+      "description": "HUD, меню, инвентарь, BT мутантов, EQS",
+      "milestone": "v2.0",
+      "status": "done",
+      "plans": 8,
+      "plansDone": 8
+    },
+    {
+      "id": 17,
+      "name": "Production Cleanup",
+      "description": "Безопасность RPC, GNS, E2E луп, 40Hz тест",
+      "milestone": "v2.0",
+      "status": "in_progress",
+      "plans": 6,
+      "plansDone": 0
+    },
+    {
+      "id": 17.5,
+      "name": "Debt Payoff",
+      "description": "VFX/Audio Editor, Megascans, IKRig, аудит требований",
+      "milestone": "v2.0",
+      "status": "blocked",
+      "plans": 7,
+      "plansDone": 0
+    },
+    {
+      "id": 18,
+      "name": "UI Polish & UX",
+      "description": "Финальный UI, анимации интерфейса, звуки кнопок, тултипы",
+      "milestone": "v2.1",
+      "status": "planned",
+      "plans": 8,
+      "plansDone": 0
+    },
+    {
+      "id": 19,
+      "name": "Levelution Events",
+      "description": "Выбросы как Battlefield, трансформация карты, разрушаемость",
+      "milestone": "v2.1",
+      "status": "planned",
+      "plans": 6,
+      "plansDone": 0
+    },
+    {
+      "id": 20,
+      "name": "Content Expansion",
+      "description": "Новое оружие, мутанты, квесты, пропсы, Zone 2 арт",
+      "milestone": "v2.1",
+      "status": "planned",
+      "plans": 8,
+      "plansDone": 0
+    },
+    {
+      "id": 21,
+      "name": "Balancing & Tuning",
+      "description": "Баланс урона, экономики, лута, сложности AI, TTK",
+      "milestone": "Alpha",
+      "status": "planned",
+      "plans": 6,
+      "plansDone": 0
+    },
+    {
+      "id": 22,
+      "name": "Bug Fixing & QA",
+      "description": "Системный поиск багов, краш-репорты, regression-тесты",
+      "milestone": "Alpha",
+      "status": "planned",
+      "plans": 8,
+      "plansDone": 0
+    },
+    {
+      "id": 23,
+      "name": "Performance Optimization",
+      "description": "GPU/CPU профилирование, LOD, Nanite, стриминг, 60 FPS таргет",
+      "milestone": "Alpha",
+      "status": "planned",
+      "plans": 6,
+      "plansDone": 0
+    },
+    {
+      "id": 24,
+      "name": "Security & Anti-Cheat",
+      "description": "EAC интеграция, серверная валидация, защита от эксплойтов",
+      "milestone": "Alpha",
+      "status": "planned",
+      "plans": 5,
+      "plansDone": 0
+    },
+    {
+      "id": 25,
+      "name": "Server Infrastructure",
+      "description": "Hetzner деплой, автоскейлинг, мониторинг, DevOps пайплайн",
+      "milestone": "Alpha",
+      "status": "planned",
+      "plans": 5,
+      "plansDone": 0
+    },
+    {
+      "id": 26,
+      "name": "Closed Alpha Test",
+      "description": "Внутренний тест команды, приглашённые игроки, сбор фидбека",
+      "milestone": "Alpha",
+      "status": "planned",
+      "plans": 5,
+      "plansDone": 0
+    },
+    {
+      "id": 27,
+      "name": "Closed Beta",
+      "description": "Ограниченный доступ, стресс-тест серверов, баланс по фидбеку",
+      "milestone": "Beta",
+      "status": "planned",
+      "plans": 6,
+      "plansDone": 0
+    },
+    {
+      "id": 28,
+      "name": "Open Beta",
+      "description": "Открытый доступ, массовый стресс-тест, финальный баланс",
+      "milestone": "Beta",
+      "status": "planned",
+      "plans": 6,
+      "plansDone": 0
+    },
+    {
+      "id": 29,
+      "name": "Localization",
+      "description": "Русский, английский, перевод UI/квестов/диалогов, субтитры",
+      "milestone": "Beta",
+      "status": "planned",
+      "plans": 4,
+      "plansDone": 0
+    },
+    {
+      "id": 30,
+      "name": "Steam Store & Marketing",
+      "description": "Страница Steam, трейлер, скриншоты, описание, виш-лист кампания",
+      "milestone": "Release",
+      "status": "planned",
+      "plans": 5,
+      "plansDone": 0
+    },
+    {
+      "id": 31,
+      "name": "Release Candidate",
+      "description": "Финальный QA, фикс критических багов, сертификация, gold-билд",
+      "milestone": "Release",
+      "status": "planned",
+      "plans": 5,
+      "plansDone": 0
+    },
+    {
+      "id": 32,
+      "name": "Launch Day",
+      "description": "Релиз в Steam, мониторинг серверов, хотфиксы, поддержка",
+      "milestone": "Release",
+      "status": "planned",
+      "plans": 4,
+      "plansDone": 0
+    }
+  ]
+}
