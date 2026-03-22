@@ -356,266 +356,279 @@
 })();
 
 // =========================================
-// PROGRESS BAR — ELECTRIFIED LIQUID
+// PROGRESS BAR — ELECTRIFIED LIQUID v2
 // =========================================
 (function() {
   const canvas = document.getElementById('progressLightning');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
 
-  let W, H, pad = 3; // padding for overflow glow
-  let bolts = [];
-  let sparks = [];
-  let boltTimer = 0;
-  let nextBolt = 300;
+  // Overflow margins so arcs can escape the bar
+  const OX = 10, OY = 25;
+  let W, H, barW, barH;
+  let arcs = [], sparks = [], orbitArcs = [];
+  let arcTimer = 0, sparkTimer = 0, orbitTimer = 0;
 
   function resize() {
-    const bar = canvas.parentElement;
-    const rect = bar.getBoundingClientRect();
-    W = canvas.width = Math.max(rect.width + pad * 2, 10);
-    H = canvas.height = Math.max(rect.height + pad * 2, 10);
+    const rect = canvas.parentElement.getBoundingClientRect();
+    barW = rect.width || 200;
+    barH = rect.height || 22;
+    W = canvas.width = barW + OX * 2;
+    H = canvas.height = barH + OY * 2;
   }
-
   resize();
   window.addEventListener('resize', resize);
 
-  // Liquid surface — wavy top edge
-  const wavePoints = 60;
-  const waveData = [];
-  for (let i = 0; i < wavePoints; i++) {
-    waveData.push({
+  // Slow wave data for liquid surface
+  const WAVES = 80;
+  const wave = [];
+  for (let i = 0; i < WAVES; i++) {
+    wave.push({
       phase: Math.random() * Math.PI * 2,
-      speed: 0.02 + Math.random() * 0.03,
-      amp: 1.5 + Math.random() * 2.5
+      speed: 0.004 + Math.random() * 0.008,  // very slow
+      amp: 1.5 + Math.random() * 3
     });
   }
 
-  function drawLiquid(time) {
-    const bH = H - pad * 2; // bar height
-    const bW = W - pad * 2;
-
+  // ---- LIQUID ----
+  function drawLiquid(t) {
     ctx.save();
-    ctx.translate(pad, pad);
+    ctx.translate(OX, OY);
 
-    // Build wavy top path
+    // Wavy top surface
     ctx.beginPath();
-    ctx.moveTo(0, bH); // bottom-left
-    ctx.lineTo(0, 0);  // top-left (will be wavy)
-
-    for (let i = 0; i < wavePoints; i++) {
-      const x = (i / (wavePoints - 1)) * bW;
-      const wd = waveData[i];
-      const y = Math.sin(wd.phase + time * wd.speed) * wd.amp;
-      if (i === 0) ctx.moveTo(0, bH);
-      ctx.lineTo(x, y + 2);
+    ctx.moveTo(0, barH);
+    for (let i = 0; i < WAVES; i++) {
+      const x = (i / (WAVES - 1)) * barW;
+      const w = wave[i];
+      const y = Math.sin(w.phase + t * w.speed) * w.amp + 2;
+      ctx.lineTo(x, y);
     }
-    ctx.lineTo(bW, bH);
+    ctx.lineTo(barW, barH);
     ctx.closePath();
 
-    // Liquid fill — pulsing gradient
-    const pulse = 0.85 + 0.15 * Math.sin(time * 0.004);
-    const grad = ctx.createLinearGradient(0, 0, bW, 0);
-    grad.addColorStop(0, `rgba(100, 10, 10, ${pulse})`);
-    grad.addColorStop(0.3, `rgba(180, 20, 20, ${pulse})`);
-    grad.addColorStop(0.6, `rgba(210, 35, 25, ${pulse})`);
-    grad.addColorStop(0.85, `rgba(240, 50, 30, ${pulse})`);
-    grad.addColorStop(1, `rgba(255, 80, 40, ${pulse})`);
-    ctx.fillStyle = grad;
+    // Slow color shift — hue drifts gently
+    const shift = Math.sin(t * 0.0008) * 15;
+    const pulse = 0.9 + 0.1 * Math.sin(t * 0.002);
+    const g = ctx.createLinearGradient(0, 0, barW, barH);
+    g.addColorStop(0,    `rgba(${80 + shift}, 8, 12, ${pulse})`);
+    g.addColorStop(0.25, `rgba(${140 + shift}, 15, 15, ${pulse})`);
+    g.addColorStop(0.5,  `rgba(${190 + shift}, 25, 18, ${pulse})`);
+    g.addColorStop(0.75, `rgba(${220 + shift}, 40, 22, ${pulse})`);
+    g.addColorStop(1,    `rgba(${250}, ${60 + shift}, 30, ${pulse})`);
+    ctx.fillStyle = g;
     ctx.fill();
 
-    // Internal glow — moving hotspots
-    for (let g = 0; g < 3; g++) {
-      const gx = (Math.sin(time * 0.001 * (g + 1) + g * 2) * 0.5 + 0.5) * bW;
-      const ga = 0.12 + 0.08 * Math.sin(time * 0.005 + g);
-      const grd = ctx.createRadialGradient(gx, bH * 0.5, 0, gx, bH * 0.5, bW * 0.2);
-      grd.addColorStop(0, `rgba(255, 120, 60, ${ga})`);
-      grd.addColorStop(1, 'transparent');
+    // Slow-moving hotspots (bright patches drifting inside)
+    for (let i = 0; i < 4; i++) {
+      const hx = (Math.sin(t * 0.0006 * (i + 1) + i * 1.7) * 0.5 + 0.5) * barW;
+      const hy = barH * (0.3 + 0.4 * Math.sin(t * 0.0008 + i * 2));
+      const ha = 0.1 + 0.08 * Math.sin(t * 0.003 + i);
+      const hg = ctx.createRadialGradient(hx, hy, 0, hx, hy, barW * 0.18);
+      hg.addColorStop(0, `rgba(255, 140, 80, ${ha})`);
+      hg.addColorStop(1, 'transparent');
       ctx.globalCompositeOperation = 'lighter';
-      ctx.fillStyle = grd;
-      ctx.fillRect(0, 0, bW, bH);
+      ctx.fillStyle = hg;
+      ctx.fillRect(0, 0, barW, barH);
       ctx.globalCompositeOperation = 'source-over';
     }
 
-    // Surface shimmer
-    const shimGrad = ctx.createLinearGradient(0, 0, 0, 6);
-    shimGrad.addColorStop(0, `rgba(255, 200, 150, ${0.15 + 0.1 * Math.sin(time * 0.006)})`);
-    shimGrad.addColorStop(1, 'transparent');
-    ctx.fillStyle = shimGrad;
-    ctx.fillRect(0, 0, bW, 6);
+    // Surface shimmer (thin bright line on top)
+    const sg = ctx.createLinearGradient(0, 0, 0, 5);
+    sg.addColorStop(0, `rgba(255, 210, 170, ${0.12 + 0.08 * Math.sin(t * 0.003)})`);
+    sg.addColorStop(1, 'transparent');
+    ctx.fillStyle = sg;
+    ctx.fillRect(0, 0, barW, 5);
 
     ctx.restore();
   }
 
-  // Horizontal lightning arc through the liquid
+  // ---- POWERFUL INTERNAL ARCS ----
   function makeArc() {
-    const bH = H - pad * 2;
-    const bW = W - pad * 2;
-    const y0 = pad + 3 + Math.random() * (bH - 6);
-    const startX = pad + Math.random() * bW * 0.3;
-    const endX = pad + bW * 0.5 + Math.random() * bW * 0.5;
+    const x0 = Math.random() * barW * 0.4;
+    const x1 = barW * 0.4 + Math.random() * barW * 0.6;
+    const yBase = 3 + Math.random() * (barH - 6);
     const pts = [];
-    const steps = 6 + Math.floor(Math.random() * 8);
-
+    const steps = 8 + Math.floor(Math.random() * 8);
     for (let i = 0; i <= steps; i++) {
-      const t = i / steps;
+      const frac = i / steps;
       pts.push({
-        x: startX + (endX - startX) * t,
-        y: y0 + (Math.random() - 0.5) * bH * 0.7
+        x: OX + x0 + (x1 - x0) * frac,
+        // Arcs can break out of bar vertically!
+        y: OY + yBase + (Math.random() - 0.5) * (barH * 1.4)
       });
     }
+    return { pts, life: 0, maxLife: 15 + Math.random() * 15, width: 1.5 + Math.random() * 2 };
+  }
 
+  // ---- ORBIT ARCS — circulate AROUND the bar ----
+  function makeOrbitArc() {
+    // Pick a random X position along the bar
+    const cx = OX + Math.random() * barW;
+    const cy = OY + barH / 2;
+    const pts = [];
+    const steps = 10 + Math.floor(Math.random() * 8);
+    const radiusY = barH * 0.5 + 8 + Math.random() * 15; // extends beyond bar
+    const radiusX = 30 + Math.random() * 60;
+    const startAngle = Math.random() * Math.PI * 2;
+    const sweep = (0.5 + Math.random() * 1.2) * Math.PI; // partial orbit
+
+    for (let i = 0; i <= steps; i++) {
+      const frac = i / steps;
+      const angle = startAngle + sweep * frac;
+      pts.push({
+        x: cx + Math.cos(angle) * radiusX + (Math.random() - 0.5) * 8,
+        y: cy + Math.sin(angle) * radiusY + (Math.random() - 0.5) * 5
+      });
+    }
+    return { pts, life: 0, maxLife: 18 + Math.random() * 14, width: 1 + Math.random() * 1.5 };
+  }
+
+  // ---- SPARKS ----
+  function makeSpark(fromEdge) {
+    const x = fromEdge ? OX + barW : OX + Math.random() * barW;
+    const side = fromEdge ? 1 : (Math.random() < 0.5 ? -1 : 1);
     return {
-      pts,
+      x,
+      y: OY + (fromEdge ? Math.random() * barH : (side < 0 ? 0 : barH)),
+      vx: fromEdge ? (2 + Math.random() * 4) : (Math.random() - 0.5) * 3,
+      vy: fromEdge ? (Math.random() - 0.5) * 5 : side * -(2 + Math.random() * 4),
       life: 0,
-      maxLife: 10 + Math.random() * 12,
-      width: 0.8 + Math.random() * 1.2
+      maxLife: 10 + Math.random() * 18,
+      size: 0.8 + Math.random() * 2
     };
   }
 
-  // Sparks flying off the surface
-  function makeSpark() {
-    const bW = W - pad * 2;
-    return {
-      x: pad + Math.random() * bW,
-      y: pad + 1,
-      vx: (Math.random() - 0.5) * 2,
-      vy: -(1 + Math.random() * 3),
-      life: 0,
-      maxLife: 8 + Math.random() * 15,
-      size: 0.5 + Math.random() * 1.5
-    };
-  }
-
-  // Edge sparks — electrical discharge at the leading edge (right side)
-  function makeEdgeSpark() {
-    const bW = W - pad * 2;
-    const bH = H - pad * 2;
-    return {
-      x: pad + bW - 2 + Math.random() * 6,
-      y: pad + Math.random() * bH,
-      vx: 1 + Math.random() * 3,
-      vy: (Math.random() - 0.5) * 4,
-      life: 0,
-      maxLife: 6 + Math.random() * 10,
-      size: 0.5 + Math.random() * 1
-    };
-  }
-
-  function drawArcPath(points, alpha, width) {
+  // ---- DRAW ARC ----
+  function drawArc(points, alpha, width) {
     if (points.length < 2) return;
+
+    // Jitter for electric feel
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
     for (let i = 1; i < points.length; i++) {
       ctx.lineTo(
-        points[i].x + (Math.random() - 0.5) * 2,
-        points[i].y + (Math.random() - 0.5) * 2
+        points[i].x + (Math.random() - 0.5) * 3,
+        points[i].y + (Math.random() - 0.5) * 3
       );
     }
-    // Bright core
-    ctx.strokeStyle = `rgba(255, 220, 200, ${alpha})`;
+
+    // Outer glow (wide, red)
+    ctx.strokeStyle = `rgba(200, 20, 20, ${alpha * 0.4})`;
+    ctx.lineWidth = width + 5;
+    ctx.shadowColor = `rgba(255, 40, 20, ${alpha * 0.6})`;
+    ctx.shadowBlur = 20;
+    ctx.stroke();
+
+    // Mid glow
+    ctx.strokeStyle = `rgba(255, 80, 40, ${alpha * 0.6})`;
+    ctx.lineWidth = width + 2;
+    ctx.shadowBlur = 10;
+    ctx.stroke();
+
+    // Hot core (white-yellow)
+    ctx.strokeStyle = `rgba(255, 240, 220, ${alpha})`;
     ctx.lineWidth = width;
-    ctx.shadowColor = `rgba(255, 80, 40, ${alpha})`;
+    ctx.shadowColor = `rgba(255, 200, 150, ${alpha})`;
     ctx.shadowBlur = 6;
     ctx.stroke();
 
-    // Outer glow
-    ctx.strokeStyle = `rgba(255, 60, 30, ${alpha * 0.5})`;
-    ctx.lineWidth = width + 2;
-    ctx.shadowBlur = 12;
-    ctx.stroke();
     ctx.shadowBlur = 0;
   }
 
+  // ---- MAIN LOOP ----
   let lastTime = 0;
-  let sparkTimer = 0;
-  let edgeSparkTimer = 0;
 
   function frame(time) {
     const dt = Math.min(time - lastTime, 50);
     lastTime = time;
     ctx.clearRect(0, 0, W, H);
 
-    // 1. Draw liquid body
+    // 1. Liquid body
     drawLiquid(time);
 
-    // 2. Lightning arcs inside liquid
-    boltTimer += dt;
-    if (boltTimer > nextBolt) {
-      boltTimer = 0;
-      nextBolt = 200 + Math.random() * 800;
-      bolts.push(makeArc());
-      if (Math.random() < 0.4) bolts.push(makeArc());
+    // 2. Internal arcs
+    arcTimer += dt;
+    if (arcTimer > 200 + Math.random() * 600) {
+      arcTimer = 0;
+      arcs.push(makeArc());
+      if (Math.random() < 0.5) arcs.push(makeArc()); // double strike
     }
 
-    for (let i = bolts.length - 1; i >= 0; i--) {
-      const b = bolts[i];
-      b.life++;
-      let a;
-      if (b.life < 2) a = 0.9;
-      else if (b.life < 4) a = 0.25;
-      else if (b.life < 6) a = 0.6;
-      else a = Math.max(0, 1 - (b.life - 6) / (b.maxLife - 6));
-
-      if (a <= 0) { bolts.splice(i, 1); continue; }
-      drawArcPath(b.pts, a, b.width);
+    for (let i = arcs.length - 1; i >= 0; i--) {
+      const a = arcs[i];
+      a.life++;
+      let al;
+      if (a.life < 2) al = 1;
+      else if (a.life < 4) al = 0.2;
+      else if (a.life < 7) al = 0.8;
+      else al = Math.max(0, 1 - (a.life - 7) / (a.maxLife - 7));
+      if (al <= 0) { arcs.splice(i, 1); continue; }
+      drawArc(a.pts, al, a.width);
     }
 
-    // 3. Surface sparks
+    // 3. Orbit arcs — circulate around the bar
+    orbitTimer += dt;
+    if (orbitTimer > 800 + Math.random() * 2000) {
+      orbitTimer = 0;
+      orbitArcs.push(makeOrbitArc());
+    }
+
+    for (let i = orbitArcs.length - 1; i >= 0; i--) {
+      const o = orbitArcs[i];
+      o.life++;
+      let al;
+      if (o.life < 3) al = 0.9;
+      else if (o.life < 5) al = 0.15;
+      else if (o.life < 8) al = 0.7;
+      else al = Math.max(0, 1 - (o.life - 8) / (o.maxLife - 8));
+      if (al <= 0) { orbitArcs.splice(i, 1); continue; }
+      drawArc(o.pts, al * 0.7, o.width);
+    }
+
+    // 4. Sparks — from surface and edge
     sparkTimer += dt;
-    if (sparkTimer > 60 + Math.random() * 120) {
+    if (sparkTimer > 40 + Math.random() * 80) {
       sparkTimer = 0;
-      sparks.push(makeSpark());
-    }
-
-    // 4. Edge sparks (leading edge discharge)
-    edgeSparkTimer += dt;
-    if (edgeSparkTimer > 80 + Math.random() * 200) {
-      edgeSparkTimer = 0;
-      sparks.push(makeEdgeSpark());
-      if (Math.random() < 0.5) sparks.push(makeEdgeSpark());
+      sparks.push(makeSpark(false)); // surface
+      if (Math.random() < 0.3) sparks.push(makeSpark(true)); // edge
     }
 
     for (let i = sparks.length - 1; i >= 0; i--) {
       const s = sparks[i];
       s.x += s.vx;
       s.y += s.vy;
-      s.vy += 0.1; // gravity
+      s.vy += 0.15;
       s.life++;
-
       const fade = 1 - s.life / s.maxLife;
       if (fade <= 0) { sparks.splice(i, 1); continue; }
 
-      // Spark glow
+      // Glow
       ctx.beginPath();
-      ctx.arc(s.x, s.y, s.size * 3, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 100, 50, ${fade * 0.2})`;
+      ctx.arc(s.x, s.y, s.size * 4, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 80, 30, ${fade * 0.15})`;
       ctx.fill();
-
-      // Spark core
+      // Core
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 230, 200, ${fade * 0.9})`;
-      ctx.shadowColor = `rgba(255, 80, 30, ${fade})`;
-      ctx.shadowBlur = 4;
+      ctx.fillStyle = `rgba(255, 240, 210, ${fade * 0.9})`;
+      ctx.shadowColor = `rgba(255, 100, 40, ${fade})`;
+      ctx.shadowBlur = 5;
       ctx.fill();
       ctx.shadowBlur = 0;
     }
 
-    // 5. Rim glow on right edge (meniscus)
-    const bW = W - pad * 2;
-    const bH = H - pad * 2;
-    const edgePulse = 0.3 + 0.2 * Math.sin(time * 0.008);
-    const edgeGrad = ctx.createRadialGradient(pad + bW, pad + bH / 2, 0, pad + bW, pad + bH / 2, 15);
-    edgeGrad.addColorStop(0, `rgba(255, 120, 60, ${edgePulse})`);
-    edgeGrad.addColorStop(1, 'transparent');
-    ctx.fillStyle = edgeGrad;
-    ctx.fillRect(pad + bW - 15, pad - 3, 20, bH + 6);
+    // 5. Edge meniscus glow
+    const ep = 0.25 + 0.15 * Math.sin(time * 0.005);
+    const eg = ctx.createRadialGradient(OX + barW, OY + barH / 2, 0, OX + barW, OY + barH / 2, 25);
+    eg.addColorStop(0, `rgba(255, 130, 60, ${ep})`);
+    eg.addColorStop(0.5, `rgba(255, 50, 20, ${ep * 0.4})`);
+    eg.addColorStop(1, 'transparent');
+    ctx.fillStyle = eg;
+    ctx.fillRect(OX + barW - 25, OY - 10, 50, barH + 20);
 
     requestAnimationFrame(frame);
   }
 
-  setTimeout(() => {
-    resize();
-    requestAnimationFrame(frame);
-  }, 1800);
+  setTimeout(() => { resize(); requestAnimationFrame(frame); }, 1800);
 })();
