@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-  fetch('https://raw.githubusercontent.com/BuzzWord001/anomaly-site/main/data.json?t=' + Date.now())
+  fetch('https://api.github.com/repos/BuzzWord001/anomaly-site/contents/data.json', {headers:{'Accept':'application/vnd.github.v3.raw'}})
+    .then(r => { if (!r.ok) throw new Error(r.status); return r; })
     .catch(() => fetch('data.json'))
     .then(r => r.json())
     .then(data => {
