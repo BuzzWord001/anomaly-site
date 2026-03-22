@@ -16,7 +16,7 @@ const ZoneAudio = (() => {
 
   function createAudioEl() {
     const a = new Audio('assets/zone-ambient.mp3');
-    a.loop = false; // we handle looping manually via crossfade
+    a.loop = false;
     a.volume = 0;
     a.preload = 'auto';
     return a;
@@ -24,6 +24,23 @@ const ZoneAudio = (() => {
 
   function initAudio() {
     if (audioA) return;
+    // Reuse the HTML autoplay element if it exists and is playing
+    const preload = document.getElementById('zoneAudioPreload');
+    if (preload && !preload.paused && preload.currentTime > 0) {
+      // Browser allowed autoplay via HTML — hijack this element
+      preload.loop = false;
+      preload.volume = volume;
+      audioA = preload;
+      audioB = createAudioEl();
+      activeAudio = audioA;
+      isPlaying = true;
+      isUnlocked = true;
+      startCrossfadeLoop(audioA);
+      updateUI();
+      return;
+    }
+    // Otherwise clean up the preload element
+    if (preload) { preload.pause(); preload.remove(); }
     audioA = createAudioEl();
     audioB = createAudioEl();
     activeAudio = audioA;
@@ -205,21 +222,40 @@ const ZoneAudio = (() => {
     });
     slider.addEventListener('click', (e) => e.stopPropagation());
 
-    // --- Автозапуск: сразу пробуем, при неудаче — на любое действие ---
-    const events = ['click', 'touchstart', 'mousemove', 'scroll', 'keydown'];
+    // --- Максимально агрессивный автозапуск ---
+    const events = ['click', 'touchstart', 'touchend', 'mousemove', 'mousedown',
+                     'scroll', 'keydown', 'pointerdown', 'pointerup', 'focus',
+                     'visibilitychange', 'wheel'];
+
+    function removeListeners() {
+      events.forEach(ev => document.removeEventListener(ev, onInteraction, { capture: true }));
+    }
 
     function onInteraction() {
       if (isUnlocked || !wantPlay) return;
       tryPlay();
-      if (isUnlocked) {
-        events.forEach(ev => document.removeEventListener(ev, onInteraction, { capture: true }));
+      // Retry a few times in case first attempt still fails
+      if (!isPlaying) {
+        setTimeout(tryPlay, 100);
+        setTimeout(tryPlay, 300);
       }
+      if (isUnlocked) removeListeners();
     }
 
-    // Попытка autoplay
+    // Attempt 1: immediate
     tryPlay();
 
-    // Если заблокировано — слушаем любое действие пользователя
+    // Attempt 2: after a microtask
+    Promise.resolve().then(tryPlay);
+
+    // Attempt 3: next frame
+    requestAnimationFrame(tryPlay);
+
+    // Attempt 4: short delay (some browsers allow after page settles)
+    setTimeout(tryPlay, 500);
+    setTimeout(tryPlay, 1500);
+
+    // Fallback: any user gesture
     if (!isPlaying) {
       events.forEach(ev => {
         document.addEventListener(ev, onInteraction, { capture: true, passive: true });
