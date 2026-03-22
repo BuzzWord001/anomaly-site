@@ -547,7 +547,7 @@ const ZoneAudio = (() => {
 
     const svg = btn.querySelector('.audio-icon-svg');
     if (svg) {
-      svg.innerHTML = isPlaying ? getSpeakerOnSVG() : getSpeakerOffSVG();
+      svg.innerHTML = isPlaying ? getIconOnSVG() : getIconOffSVG();
     }
 
     if (slider) {
@@ -555,16 +555,23 @@ const ZoneAudio = (() => {
     }
   }
 
-  function getSpeakerOnSVG() {
-    return `<path d="M3 9v6h4l5 5V4L7 9H3z" fill="currentColor"/>
-      <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" fill="currentColor" opacity="0.7"/>
-      <path d="M19 12c0 3.53-2.04 6.58-5 8.03v2.21c4.01-1.82 6.8-5.86 6.8-10.24S18.01 3.58 14 1.76v2.22c2.96 1.46 5 4.5 5 8.02z" fill="currentColor" opacity="0.4"/>`;
+  // Radiation trefoil icon — active (playing)
+  function getIconOnSVG() {
+    return `
+      <circle cx="12" cy="12" r="2.2" fill="currentColor"/>
+      <path d="M12 5.5c-1.8 0-3.4.7-4.6 1.9L12 12l4.6-4.6C15.4 6.2 13.8 5.5 12 5.5z" fill="currentColor"/>
+      <path d="M5.5 12c0 1.8.7 3.4 1.9 4.6L12 12 7.4 7.4C6.2 8.6 5.5 10.2 5.5 12z" fill="currentColor"/>
+      <path d="M12 18.5c1.8 0 3.4-.7 4.6-1.9L12 12l-4.6 4.6c1.2 1.2 2.8 1.9 4.6 1.9z" fill="currentColor"/>`;
   }
 
-  function getSpeakerOffSVG() {
-    return `<path d="M3 9v6h4l5 5V4L7 9H3z" fill="currentColor" opacity="0.4"/>
-      <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v1.79l4.72 4.72c.14-.5.22-1.03.28-1.48z" fill="currentColor" opacity="0.2"/>
-      <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>`;
+  // Radiation trefoil icon — muted (off)
+  function getIconOffSVG() {
+    return `
+      <circle cx="12" cy="12" r="2.2" fill="currentColor" opacity="0.3"/>
+      <path d="M12 5.5c-1.8 0-3.4.7-4.6 1.9L12 12l4.6-4.6C15.4 6.2 13.8 5.5 12 5.5z" fill="currentColor" opacity="0.3"/>
+      <path d="M5.5 12c0 1.8.7 3.4 1.9 4.6L12 12 7.4 7.4C6.2 8.6 5.5 10.2 5.5 12z" fill="currentColor" opacity="0.3"/>
+      <path d="M12 18.5c1.8 0 3.4-.7 4.6-1.9L12 12l-4.6 4.6c1.2 1.2 2.8 1.9 4.6 1.9z" fill="currentColor" opacity="0.3"/>
+      <line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>`;
   }
 
   function createUI() {
@@ -573,15 +580,14 @@ const ZoneAudio = (() => {
       if (saved !== null) volume = parseFloat(saved);
     } catch(e) {}
 
-    const header = document.querySelector('.header-content');
-    if (!header) return;
+    // Insert into the pre-existing container in HTML
+    const panel = document.getElementById('audioControl');
+    if (!panel) return;
 
-    const panel = document.createElement('div');
-    panel.className = 'audio-control';
     panel.innerHTML = `
       <button class="audio-toggle-btn" id="audioToggleBtn" title="ЗВУК ЗОНЫ">
         <svg class="audio-icon-svg" viewBox="0 0 24 24" width="20" height="20">
-          ${getSpeakerOffSVG()}
+          ${getIconOffSVG()}
         </svg>
       </button>
       <div class="audio-slider-wrap">
@@ -593,10 +599,7 @@ const ZoneAudio = (() => {
           min="0" max="100" value="${Math.round(volume * 100)}"
           title="Громкость">
       </div>
-      <span class="audio-label">ЗОНА</span>
     `;
-
-    header.appendChild(panel);
 
     document.getElementById('audioToggleBtn').addEventListener('click', (e) => {
       e.stopPropagation();
