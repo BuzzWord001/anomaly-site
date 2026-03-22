@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(r => r.json())
     .then(data => {
       const weights = data.milestoneWeights || {};
-      renderLastUpdated(data.lastUpdated);
+      renderLastUpdated(data.lastUpdated, data.lastSyncBy);
       renderProgress(data.phases, weights);
       renderMilestoneTags(data.phases, weights);
       renderTeam(data.team);
@@ -40,9 +40,11 @@ function relativeDate(dateStr) {
   return Math.floor(diff / 30) + ' мес. назад';
 }
 
-function renderLastUpdated(date) {
+function renderLastUpdated(date, syncBy) {
   document.getElementById('lastUpdated').textContent = date;
-  document.getElementById('lastUpdatedRelative').textContent = '(' + relativeDate(date) + ')';
+  const rel = document.getElementById('lastUpdatedRelative');
+  const syncInfo = syncBy ? ` by ${syncBy}` : '';
+  rel.textContent = '(' + relativeDate(date) + syncInfo + ')';
 }
 
 // --- Weighted calculation helper ---
