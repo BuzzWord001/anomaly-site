@@ -900,6 +900,28 @@ footer {
 .changelog-list {
   max-width: 700px;
   margin: 0 auto;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+/* Custom scrollbar */
+.changelog-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.changelog-list::-webkit-scrollbar-track {
+  background: rgba(20, 20, 20, 0.5);
+  border-radius: 3px;
+}
+
+.changelog-list::-webkit-scrollbar-thumb {
+  background: var(--red-dark);
+  border-radius: 3px;
+}
+
+.changelog-list::-webkit-scrollbar-thumb:hover {
+  background: var(--red);
 }
 
 .changelog-entry {
