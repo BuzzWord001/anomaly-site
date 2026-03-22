@@ -272,15 +272,14 @@
       ctx.fill();
     });
 
-    // --- Lightning bolts ---
+    // --- Lightning bolts (rare, dramatic) ---
     boltTimer += dt;
     if (boltTimer > nextBolt) {
       boltTimer = 0;
-      nextBolt = 600 + Math.random() * 3000;
+      nextBolt = 3000 + Math.random() * 6000;
       bolts.push(makeBolt());
-      // Sometimes double bolt
-      if (Math.random() < 0.3) {
-        setTimeout(() => bolts.push(makeBolt()), 80 + Math.random() * 150);
+      if (Math.random() < 0.2) {
+        setTimeout(() => bolts.push(makeBolt()), 100 + Math.random() * 200);
       }
     }
 
@@ -310,9 +309,9 @@
       }
     }
 
-    // --- Electric arcs ---
+    // --- Electric arcs (rare) ---
     arcTimer += dt;
-    if (arcTimer > 400 + Math.random() * 800) {
+    if (arcTimer > 2000 + Math.random() * 4000) {
       arcTimer = 0;
       arcs.push(makeArc());
     }
@@ -499,7 +498,7 @@
     };
   }
 
-  // ---- DRAW ARC ----
+  // ---- DRAW ARC (blue electric) ----
   function drawArc(points, alpha, width) {
     if (points.length < 2) return;
 
@@ -508,29 +507,30 @@
     ctx.moveTo(points[0].x, points[0].y);
     for (let i = 1; i < points.length; i++) {
       ctx.lineTo(
-        points[i].x + (Math.random() - 0.5) * 3,
-        points[i].y + (Math.random() - 0.5) * 3
+        points[i].x + (Math.random() - 0.5) * 2,
+        points[i].y + (Math.random() - 0.5) * 2
       );
     }
 
-    // Outer glow (wide, red)
-    ctx.strokeStyle = `rgba(200, 20, 20, ${alpha * 0.4})`;
-    ctx.lineWidth = width + 5;
-    ctx.shadowColor = `rgba(255, 40, 20, ${alpha * 0.6})`;
-    ctx.shadowBlur = 20;
+    // Outer glow (wide, deep blue)
+    ctx.strokeStyle = `rgba(20, 60, 220, ${alpha * 0.3})`;
+    ctx.lineWidth = width + 6;
+    ctx.shadowColor = `rgba(40, 100, 255, ${alpha * 0.6})`;
+    ctx.shadowBlur = 25;
     ctx.stroke();
 
-    // Mid glow
-    ctx.strokeStyle = `rgba(255, 80, 40, ${alpha * 0.6})`;
-    ctx.lineWidth = width + 2;
-    ctx.shadowBlur = 10;
+    // Mid glow (electric blue)
+    ctx.strokeStyle = `rgba(60, 140, 255, ${alpha * 0.5})`;
+    ctx.lineWidth = width + 3;
+    ctx.shadowColor = `rgba(80, 160, 255, ${alpha * 0.5})`;
+    ctx.shadowBlur = 12;
     ctx.stroke();
 
-    // Hot core (white-yellow)
-    ctx.strokeStyle = `rgba(255, 240, 220, ${alpha})`;
+    // Hot core (white-blue)
+    ctx.strokeStyle = `rgba(200, 230, 255, ${alpha})`;
     ctx.lineWidth = width;
-    ctx.shadowColor = `rgba(255, 200, 150, ${alpha})`;
-    ctx.shadowBlur = 6;
+    ctx.shadowColor = `rgba(150, 200, 255, ${alpha})`;
+    ctx.shadowBlur = 8;
     ctx.stroke();
 
     ctx.shadowBlur = 0;
@@ -547,12 +547,11 @@
     // 1. Liquid body
     drawLiquid(time);
 
-    // 2. Internal arcs
+    // 2. Internal arcs (rare, powerful)
     arcTimer += dt;
-    if (arcTimer > 200 + Math.random() * 600) {
+    if (arcTimer > 1500 + Math.random() * 3500) {
       arcTimer = 0;
       arcs.push(makeArc());
-      if (Math.random() < 0.5) arcs.push(makeArc()); // double strike
     }
 
     for (let i = arcs.length - 1; i >= 0; i--) {
@@ -567,9 +566,9 @@
       drawArc(a.pts, al, a.width);
     }
 
-    // 3. Orbit arcs — circulate around the bar
+    // 3. Orbit arcs — rare, circulate around the bar
     orbitTimer += dt;
-    if (orbitTimer > 800 + Math.random() * 2000) {
+    if (orbitTimer > 3000 + Math.random() * 6000) {
       orbitTimer = 0;
       orbitArcs.push(makeOrbitArc());
     }
@@ -586,12 +585,12 @@
       drawArc(o.pts, al * 0.7, o.width);
     }
 
-    // 4. Sparks — from surface and edge
+    // 4. Sparks — blue, from surface and edge (less frequent)
     sparkTimer += dt;
-    if (sparkTimer > 40 + Math.random() * 80) {
+    if (sparkTimer > 100 + Math.random() * 200) {
       sparkTimer = 0;
-      sparks.push(makeSpark(false)); // surface
-      if (Math.random() < 0.3) sparks.push(makeSpark(true)); // edge
+      sparks.push(makeSpark(false));
+      if (Math.random() < 0.2) sparks.push(makeSpark(true));
     }
 
     for (let i = sparks.length - 1; i >= 0; i--) {
@@ -603,26 +602,26 @@
       const fade = 1 - s.life / s.maxLife;
       if (fade <= 0) { sparks.splice(i, 1); continue; }
 
-      // Glow
+      // Blue glow
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.size * 4, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 80, 30, ${fade * 0.15})`;
+      ctx.fillStyle = `rgba(60, 120, 255, ${fade * 0.12})`;
       ctx.fill();
-      // Core
+      // White-blue core
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 240, 210, ${fade * 0.9})`;
-      ctx.shadowColor = `rgba(255, 100, 40, ${fade})`;
+      ctx.fillStyle = `rgba(210, 230, 255, ${fade * 0.9})`;
+      ctx.shadowColor = `rgba(80, 150, 255, ${fade})`;
       ctx.shadowBlur = 5;
       ctx.fill();
       ctx.shadowBlur = 0;
     }
 
-    // 5. Edge meniscus glow
-    const ep = 0.25 + 0.15 * Math.sin(time * 0.005);
+    // 5. Edge meniscus glow (blue-white)
+    const ep = 0.2 + 0.12 * Math.sin(time * 0.005);
     const eg = ctx.createRadialGradient(OX + barW, OY + barH / 2, 0, OX + barW, OY + barH / 2, 25);
-    eg.addColorStop(0, `rgba(255, 130, 60, ${ep})`);
-    eg.addColorStop(0.5, `rgba(255, 50, 20, ${ep * 0.4})`);
+    eg.addColorStop(0, `rgba(120, 180, 255, ${ep})`);
+    eg.addColorStop(0.5, `rgba(40, 80, 200, ${ep * 0.3})`);
     eg.addColorStop(1, 'transparent');
     ctx.fillStyle = eg;
     ctx.fillRect(OX + barW - 25, OY - 10, 50, barH + 20);
