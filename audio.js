@@ -131,7 +131,9 @@ const ZoneAudio = (() => {
 
   function setVolume(val) {
     volume = val;
-    if (activeAudio && !activeAudio.paused) activeAudio.volume = volume;
+    if (activeAudio && !activeAudio.paused) {
+      activeAudio.volume = volume;
+    }
     try { localStorage.setItem('zoneAudioVol', val); } catch(e) {}
   }
 
@@ -223,36 +225,80 @@ const ZoneAudio = (() => {
     slider.addEventListener('click', (e) => e.stopPropagation());
 
     // --- AUTOPLAY STRATEGY ---
-    // Browsers allow muted autoplay. We start muted, then unmute on first interaction.
-    // This way the track is already playing — user hears it instantly on first gesture.
+    // 1. Try normal autoplay with sound
+    // 2. If blocked: start muted via Web Audio API (gain=0), unmute on interaction
+    // Web Audio API lets us control volume via GainNode without needing "user activation"
+
+    let actx = null;
+    let gainNode = null;
+    let mutedPlaying = false;
+
+    function connectWebAudio(audioEl) {
+      if (actx) return;
+      try {
+        actx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = actx.createMediaElementSource(audioEl);
+        gainNode = actx.createGain();
+        gainNode.gain.value = 0; // start silent
+        source.connect(gainNode);
+        gainNode.connect(actx.destination);
+      } catch(e) {}
+    }
+
+    function unmute() {
+      if (isUnlocked) return;
+      isUnlocked = true;
+
+      if (gainNode) {
+        // Smooth fade in via Web Audio gain
+        gainNode.gain.cancelScheduledValues(actx.currentTime);
+        gainNode.gain.setValueAtTime(0, actx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(1, actx.currentTime + 0.8);
+      }
+      if (activeAudio) {
+        activeAudio.muted = false;
+        activeAudio.volume = volume;
+      }
+      if (actx && actx.state === 'suspended') {
+        actx.resume();
+      }
+      removeListeners();
+    }
 
     const interactionEvents = ['click', 'touchstart', 'touchend', 'mousemove', 'mousedown',
                                'scroll', 'keydown', 'pointerdown', 'pointerup', 'wheel'];
 
     function removeListeners() {
-      interactionEvents.forEach(ev => document.removeEventListener(ev, onInteraction, { capture: true }));
+      interactionEvents.forEach(ev => {
+        document.removeEventListener(ev, onInteraction, { capture: true });
+        window.removeEventListener(ev, onInteraction, { capture: true });
+      });
+    }
+
+    function addListeners() {
+      interactionEvents.forEach(ev => {
+        document.addEventListener(ev, onInteraction, { capture: true, passive: true });
+        window.addEventListener(ev, onInteraction, { capture: true, passive: true });
+      });
     }
 
     function onInteraction() {
       if (isUnlocked) return;
       if (!wantPlay) { removeListeners(); return; }
 
-      // Unmute the already-playing track
-      if (isPlaying && activeAudio) {
-        activeAudio.muted = false;
-        activeAudio.volume = volume;
-        isUnlocked = true;
-        removeListeners();
+      if (mutedPlaying && activeAudio) {
+        // Track already playing silently — just unmute
+        unmute();
         return;
       }
 
-      // Or start fresh if not playing yet
+      // Not playing at all — try to start
       tryPlay();
-      if (isPlaying) {
-        removeListeners();
-      } else {
+      if (!isPlaying) {
         setTimeout(tryPlay, 100);
         setTimeout(tryPlay, 300);
+      } else {
+        removeListeners();
       }
     }
 
@@ -260,23 +306,31 @@ const ZoneAudio = (() => {
     tryPlay();
 
     if (!isPlaying) {
-      // Step 2: Start MUTED — browsers always allow this
+      // Step 2: Start via Web Audio API with gain=0 (silent but playing)
       initAudio();
-      activeAudio.muted = true;
-      activeAudio.volume = 0;
+      connectWebAudio(activeAudio);
+      activeAudio.muted = false; // not muted — volume controlled by gainNode
+      activeAudio.volume = 1;    // full volume to audio element, gain controls actual output
       activeAudio.currentTime = 0;
       activeAudio.play().then(() => {
         isPlaying = true;
+        mutedPlaying = true;
         startCrossfadeLoop(activeAudio);
         updateUI();
-        // Now wait for interaction to unmute
-        interactionEvents.forEach(ev => {
-          document.addEventListener(ev, onInteraction, { capture: true, passive: true });
-        });
+        addListeners();
       }).catch(() => {
-        // Even muted failed — pure fallback to interaction
-        interactionEvents.forEach(ev => {
-          document.addEventListener(ev, onInteraction, { capture: true, passive: true });
+        // Even this failed — try HTML muted approach
+        activeAudio.muted = true;
+        activeAudio.volume = 0;
+        activeAudio.play().then(() => {
+          isPlaying = true;
+          mutedPlaying = true;
+          startCrossfadeLoop(activeAudio);
+          updateUI();
+          addListeners();
+        }).catch(() => {
+          // Total block — wait for interaction
+          addListeners();
         });
       });
     }
