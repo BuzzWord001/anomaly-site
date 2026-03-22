@@ -2,34 +2,101 @@
 /* OST 10 — Саня БтрЪ (Студия BTR FM) — dark ambient    */
 
 const ZoneAudio = (() => {
-  let audio = null;
-  let isPlaying = false;    // реально играет
-  let isUnlocked = false;   // браузер разрешил
-  let wantPlay = true;      // пользователь хочет звук (по умолчанию ДА)
+  let audioA = null;
+  let audioB = null;
+  let activeAudio = null;   // which one is currently playing
+  let fadeTimer = null;
+  let isPlaying = false;
+  let isUnlocked = false;
+  let wantPlay = true;
   let volume = 0.25;
 
+  const CROSSFADE_SEC = 4;  // seconds of crossfade overlap
+  const FADE_STEPS = 60;    // smoothness
+
+  function createAudioEl() {
+    const a = new Audio('assets/zone-ambient.mp3');
+    a.loop = false; // we handle looping manually via crossfade
+    a.volume = 0;
+    a.preload = 'auto';
+    return a;
+  }
+
   function initAudio() {
-    if (audio) return;
-    audio = new Audio('assets/zone-ambient.mp3');
-    audio.loop = true;
-    audio.volume = volume;
-    audio.preload = 'auto';
+    if (audioA) return;
+    audioA = createAudioEl();
+    audioB = createAudioEl();
+    activeAudio = audioA;
+  }
+
+  function startCrossfadeLoop(src) {
+    // When src approaches end, fade it out and fade in the other
+    const checkInterval = 250; // ms
+
+    if (fadeTimer) clearInterval(fadeTimer);
+
+    fadeTimer = setInterval(() => {
+      if (!isPlaying || !wantPlay) return;
+      if (!src || src.paused) return;
+
+      const timeLeft = src.duration - src.currentTime;
+      if (isNaN(timeLeft)) return;
+
+      if (timeLeft <= CROSSFADE_SEC && timeLeft > 0) {
+        // Start crossfade
+        clearInterval(fadeTimer);
+        fadeTimer = null;
+
+        const next = (src === audioA) ? audioB : audioA;
+        next.currentTime = 0;
+        next.volume = 0;
+        next.play().catch(() => {});
+
+        let step = 0;
+        const interval = (CROSSFADE_SEC * 1000) / FADE_STEPS;
+
+        const fadeInterval = setInterval(() => {
+          step++;
+          const progress = step / FADE_STEPS;
+
+          // Fade out current
+          src.volume = Math.max(0, volume * (1 - progress));
+          // Fade in next
+          next.volume = Math.min(volume, volume * progress);
+
+          if (step >= FADE_STEPS) {
+            clearInterval(fadeInterval);
+            src.pause();
+            src.currentTime = 0;
+            src.volume = 0;
+            next.volume = volume;
+            activeAudio = next;
+            // Start watching the new active track
+            startCrossfadeLoop(next);
+          }
+        }, interval);
+      }
+    }, checkInterval);
   }
 
   function tryPlay() {
     if (!wantPlay || isPlaying) return;
     initAudio();
-    audio.volume = volume;
-    audio.play().then(() => {
+    activeAudio.currentTime = 0;
+    activeAudio.volume = volume;
+    activeAudio.play().then(() => {
       isPlaying = true;
       isUnlocked = true;
+      startCrossfadeLoop(activeAudio);
       updateUI();
     }).catch(() => {});
   }
 
   function stop() {
-    if (!audio) return;
-    audio.pause();
+    if (!audioA) return;
+    if (fadeTimer) { clearInterval(fadeTimer); fadeTimer = null; }
+    audioA.pause();
+    audioB.pause();
     isPlaying = false;
     wantPlay = false;
     updateUI();
@@ -47,7 +114,7 @@ const ZoneAudio = (() => {
 
   function setVolume(val) {
     volume = val;
-    if (audio) audio.volume = volume;
+    if (activeAudio && !activeAudio.paused) activeAudio.volume = volume;
     try { localStorage.setItem('zoneAudioVol', val); } catch(e) {}
   }
 
