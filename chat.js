@@ -45,6 +45,37 @@
   const TEXT_EMOJIS = ['artifact','anomaly','emission','bloodsucker','stalker','zone','radiation','medkit','ammo','loot'];
   const TEXT_EMOJI_SET = new Set(TEXT_EMOJIS);
 
+  // --- TWITCH / BTTV / 7TV EMOTES ---
+  // Format: { code: 'emote_id', src: 'cdn_url' }
+  const TWITCH_EMOTES = [
+    { code: 'Kappa', src: 'https://cdn.7tv.app/emote/60ae958e229664e866f0a660/1x.webp' },
+    { code: 'KEKW', src: 'https://cdn.7tv.app/emote/60ae4bb30e35477634988c09/1x.webp' },
+    { code: 'OMEGALUL', src: 'https://cdn.7tv.app/emote/60ae7316f39a7552b658b60d/1x.webp' },
+    { code: 'monkaS', src: 'https://cdn.7tv.app/emote/60ae3e54cab80e4e0fdd6adf/1x.webp' },
+    { code: 'PogChamp', src: 'https://cdn.7tv.app/emote/60ae916df39a7552b658b791/1x.webp' },
+    { code: 'Sadge', src: 'https://cdn.7tv.app/emote/60ae459b0e35477634988b8e/1x.webp' },
+    { code: 'COPIUM', src: 'https://cdn.7tv.app/emote/60ae9485f39a7552b658b7af/1x.webp' },
+    { code: 'PepeLaugh', src: 'https://cdn.7tv.app/emote/60ae8b44f39a7552b658b6df/1x.webp' },
+    { code: 'EZ', src: 'https://cdn.7tv.app/emote/60ae7d9cf39a7552b658b681/1x.webp' },
+    { code: 'catJAM', src: 'https://cdn.7tv.app/emote/60ae65d2f39a7552b658b5c8/1x.webp' },
+    { code: 'HYPERS', src: 'https://cdn.7tv.app/emote/60ae87acf39a7552b658b6c5/1x.webp' },
+    { code: 'monkaW', src: 'https://cdn.7tv.app/emote/60ae3f640e35477634988ae6/1x.webp' },
+    { code: 'FeelsBadMan', src: 'https://cdn.7tv.app/emote/60ae7f1af39a7552b658b696/1x.webp' },
+    { code: 'FeelsGoodMan', src: 'https://cdn.7tv.app/emote/60ae7f56f39a7552b658b69b/1x.webp' },
+    { code: 'PepeHands', src: 'https://cdn.7tv.app/emote/60ae89e7f39a7552b658b6d8/1x.webp' },
+    { code: 'Pepega', src: 'https://cdn.7tv.app/emote/60ae8ac6f39a7552b658b6e1/1x.webp' },
+    { code: 'widepeepoHappy', src: 'https://cdn.7tv.app/emote/60ae9720f39a7552b658b7bd/1x.webp' },
+    { code: 'peepoSad', src: 'https://cdn.7tv.app/emote/60ae89a4f39a7552b658b6d4/1x.webp' },
+    { code: 'Clap', src: 'https://cdn.7tv.app/emote/60ae5d29f39a7552b658b575/1x.webp' },
+    { code: 'POGGERS', src: 'https://cdn.7tv.app/emote/60ae9168f39a7552b658b78c/1x.webp' },
+    { code: 'monkaHmm', src: 'https://cdn.7tv.app/emote/60ae3f3b0e35477634988ae1/1x.webp' },
+    { code: 'LULW', src: 'https://cdn.7tv.app/emote/60ae8d13f39a7552b658b6f6/1x.webp' },
+    { code: 'pepeMeltdown', src: 'https://cdn.7tv.app/emote/6257e7a3131d4588262aae2f/1x.webp' },
+    { code: 'Aware', src: 'https://cdn.7tv.app/emote/626795b38c5eb7bdd5c5c1c9/1x.webp' },
+  ];
+  const TWITCH_MAP = {};
+  TWITCH_EMOTES.forEach(e => { TWITCH_MAP[e.code.toLowerCase()] = e; });
+
   // --- STANDARD EMOJI CATEGORIES ---
   const STD_EMOJIS = {
     'Смайлы': ['😀','😂','🤣','😅','😊','😎','🤔','😏','😒','😢','😭','😤','🤬','😱','🥺','😴','🤮','🤡','💩','👻','🤖','👽','🫡','🫠','😈'],
@@ -301,8 +332,16 @@
   function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
   function renderEmojis(text) {
     text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    // SVG zone emojis
     for (const [ch, svg] of Object.entries(SVG_EMOJIS)) { while (text.indexOf(ch) !== -1) text = text.replace(ch, svg); }
-    return text.replace(/:(\w+):/g, (m, w) => TEXT_EMOJI_SET.has(w.toLowerCase()) ? '<span class="zone-emoji-badge">' + w.toLowerCase() + '</span>' : m);
+    // Twitch emotes (case-insensitive word match)
+    text = text.replace(/\b([A-Za-z]\w+)\b/g, (m, w) => {
+      const e = TWITCH_MAP[w.toLowerCase()];
+      return e ? '<img class="zone-twitch-emote" src="' + e.src + '" alt="' + e.code + '" title="' + e.code + '">' : m;
+    });
+    // Text tag emojis :word:
+    text = text.replace(/:(\w+):/g, (m, w) => TEXT_EMOJI_SET.has(w.toLowerCase()) ? '<span class="zone-emoji-badge">' + w.toLowerCase() + '</span>' : m);
+    return text;
   }
 
   function buildMsgEl(msg) {
@@ -345,6 +384,12 @@
     // Zone text tags
     h += '<div class="zone-chat-emoji-section-title">Теги</div><div class="zone-chat-emoji-grid">';
     TEXT_EMOJIS.forEach(e => { h += '<button class="zone-chat-emoji-item text-emoji" data-em=":' + e + ':">' + e + '</button>'; });
+    h += '</div>';
+    // Twitch / BTTV / 7TV emotes
+    h += '<div class="zone-chat-emoji-section-title">Twitch / BTTV</div><div class="zone-chat-emoji-grid">';
+    TWITCH_EMOTES.forEach(e => {
+      h += '<button class="zone-chat-emoji-item zone-twitch-emoji-btn" data-em="' + e.code + '" title="' + e.code + '"><img src="' + e.src + '" alt="' + e.code + '" class="zone-twitch-emote-preview"></button>';
+    });
     h += '</div>';
     // Standard emoji categories
     for (const [cat, emojis] of Object.entries(STD_EMOJIS)) {

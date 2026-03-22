@@ -1155,6 +1155,9 @@ footer {
 .zone-sys-icon { display:inline-block; margin-right:4px; font-size:11px; vertical-align:middle; animation:sysIconPulse 2s ease-in-out infinite; }
 @keyframes sysIconPulse { 0%,100%{opacity:0.6;filter:drop-shadow(0 0 2px rgba(232,160,32,0.3))} 50%{opacity:1;filter:drop-shadow(0 0 6px rgba(232,160,32,0.6))} }
 .zone-sys-spinner { display:inline-block; width:10px; height:10px; border:1.5px solid rgba(232,160,32,0.3); border-top-color:var(--amber); border-radius:50%; animation:sysSpin 0.8s linear infinite; vertical-align:middle; margin-right:6px; }
+.zone-twitch-emote { display:inline-block; width:22px; height:22px; vertical-align:middle; margin:0 1px; object-fit:contain; }
+.zone-twitch-emote-preview { width:24px; height:24px; object-fit:contain; display:block; }
+.zone-twitch-emoji-btn { width:34px; height:34px; padding:3px; }
 @keyframes sysSpin { to{transform:rotate(360deg)} }
 
 .zone-svg-emoji { display:inline-block; width:16px; height:16px; vertical-align:middle; margin:0 1px; position:relative; top:-1px; }
