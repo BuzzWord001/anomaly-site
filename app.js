@@ -31,7 +31,9 @@ const milestoneConfig = {
 // --- Relative date ---
 function relativeDate(dateStr) {
   const now = new Date();
-  const date = new Date(dateStr + 'T00:00:00');
+  // Parse "2026-03-22 11:15 МСК" or "2026-03-22"
+  const datePart = dateStr.split(' ')[0];
+  const date = new Date(datePart + 'T00:00:00');
   const diff = Math.floor((now - date) / (1000 * 60 * 60 * 24));
   if (diff === 0) return 'сегодня';
   if (diff === 1) return 'вчера';
