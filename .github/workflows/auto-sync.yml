@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout anomaly-site
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
 
       - name: Checkout stalker-extraction (master)
         uses: actions/checkout@v4

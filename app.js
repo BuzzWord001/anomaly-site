@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-  fetch('data.json?v=' + Date.now())
+  fetch('https://raw.githubusercontent.com/BuzzWord001/anomaly-site/main/data.json?t=' + Date.now())
+    .catch(() => fetch('data.json'))
     .then(r => r.json())
     .then(data => {
       const weights = data.milestoneWeights || {};

@@ -229,17 +229,54 @@ function updateData(taskboardContent, teamWorkContent) {
     }
   }
 
-  // Update timestamp (Moscow time = UTC+3)
+  // --- Auto-update changelog from phase changes ---
   const now = new Date();
   const msk = new Date(now.getTime() + 3 * 60 * 60 * 1000);
-  const dateStr = msk.toISOString().slice(0, 10);
+  const todayStr = msk.toISOString().slice(0, 10);
   const timeStr = msk.toISOString().slice(11, 16);
-  data.lastUpdated = `${dateStr} ${timeStr} МСК`;
+
+  // Compare phases with existing data to detect changes
+  const oldData = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
+  const newEntries = [];
+
+  for (const tbPhase of tbPhases) {
+    const oldPhase = oldData.phases.find(p => p.id === tbPhase.id);
+    if (!oldPhase) continue;
+
+    // Phase completed
+    if (tbPhase.status === 'done' && oldPhase.status !== 'done') {
+      newEntries.push(`Phase ${tbPhase.id} COMPLETE — ${tbPhase.name} (${tbPhase.plansDone}/${tbPhase.plans} планов)`);
+    }
+    // Phase started
+    else if (tbPhase.status === 'in_progress' && oldPhase.status !== 'in_progress') {
+      newEntries.push(`Phase ${tbPhase.id} начата — ${tbPhase.name}`);
+    }
+    // Plans progressed
+    else if (tbPhase.plansDone > oldPhase.plansDone && tbPhase.status === 'in_progress') {
+      newEntries.push(`Phase ${tbPhase.id} — ${tbPhase.name} (${tbPhase.plansDone}/${tbPhase.plans} планов)`);
+    }
+  }
+
+  // Add new changelog entries if any
+  if (newEntries.length > 0) {
+    if (!data.changelog) data.changelog = [];
+    const todayLog = data.changelog.find(c => c.date === todayStr);
+    if (todayLog) {
+      // Add only entries that don't already exist
+      for (const entry of newEntries) {
+        if (!todayLog.entries.includes(entry)) {
+          todayLog.entries.unshift(entry);
+        }
+      }
+    } else {
+      data.changelog.unshift({ date: todayStr, entries: newEntries });
+    }
+  }
+
+  data.lastUpdated = `${todayStr} ${timeStr} МСК`;
   data.lastSyncBy = 'auto-sync';
 
   fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2) + '\n', 'utf8');
-
-  // Check if anything actually changed
   return true;
 }
 
