@@ -45,33 +45,31 @@
   const TEXT_EMOJIS = ['artifact','anomaly','emission','bloodsucker','stalker','zone','radiation','medkit','ammo','loot'];
   const TEXT_EMOJI_SET = new Set(TEXT_EMOJIS);
 
-  // --- TWITCH / BTTV / 7TV EMOTES ---
-  // Format: { code: 'emote_id', src: 'cdn_url' }
+  // --- TWITCH / BTTV EMOTES (BetterTTV CDN) ---
   const TWITCH_EMOTES = [
-    { code: 'Kappa', src: 'https://cdn.7tv.app/emote/60ae958e229664e866f0a660/1x.webp' },
-    { code: 'KEKW', src: 'https://cdn.7tv.app/emote/60ae4bb30e35477634988c09/1x.webp' },
-    { code: 'OMEGALUL', src: 'https://cdn.7tv.app/emote/60ae7316f39a7552b658b60d/1x.webp' },
-    { code: 'monkaS', src: 'https://cdn.7tv.app/emote/60ae3e54cab80e4e0fdd6adf/1x.webp' },
-    { code: 'PogChamp', src: 'https://cdn.7tv.app/emote/60ae916df39a7552b658b791/1x.webp' },
-    { code: 'Sadge', src: 'https://cdn.7tv.app/emote/60ae459b0e35477634988b8e/1x.webp' },
-    { code: 'COPIUM', src: 'https://cdn.7tv.app/emote/60ae9485f39a7552b658b7af/1x.webp' },
-    { code: 'PepeLaugh', src: 'https://cdn.7tv.app/emote/60ae8b44f39a7552b658b6df/1x.webp' },
-    { code: 'EZ', src: 'https://cdn.7tv.app/emote/60ae7d9cf39a7552b658b681/1x.webp' },
-    { code: 'catJAM', src: 'https://cdn.7tv.app/emote/60ae65d2f39a7552b658b5c8/1x.webp' },
-    { code: 'HYPERS', src: 'https://cdn.7tv.app/emote/60ae87acf39a7552b658b6c5/1x.webp' },
-    { code: 'monkaW', src: 'https://cdn.7tv.app/emote/60ae3f640e35477634988ae6/1x.webp' },
-    { code: 'FeelsBadMan', src: 'https://cdn.7tv.app/emote/60ae7f1af39a7552b658b696/1x.webp' },
-    { code: 'FeelsGoodMan', src: 'https://cdn.7tv.app/emote/60ae7f56f39a7552b658b69b/1x.webp' },
-    { code: 'PepeHands', src: 'https://cdn.7tv.app/emote/60ae89e7f39a7552b658b6d8/1x.webp' },
-    { code: 'Pepega', src: 'https://cdn.7tv.app/emote/60ae8ac6f39a7552b658b6e1/1x.webp' },
-    { code: 'widepeepoHappy', src: 'https://cdn.7tv.app/emote/60ae9720f39a7552b658b7bd/1x.webp' },
-    { code: 'peepoSad', src: 'https://cdn.7tv.app/emote/60ae89a4f39a7552b658b6d4/1x.webp' },
-    { code: 'Clap', src: 'https://cdn.7tv.app/emote/60ae5d29f39a7552b658b575/1x.webp' },
-    { code: 'POGGERS', src: 'https://cdn.7tv.app/emote/60ae9168f39a7552b658b78c/1x.webp' },
-    { code: 'monkaHmm', src: 'https://cdn.7tv.app/emote/60ae3f3b0e35477634988ae1/1x.webp' },
-    { code: 'LULW', src: 'https://cdn.7tv.app/emote/60ae8d13f39a7552b658b6f6/1x.webp' },
-    { code: 'pepeMeltdown', src: 'https://cdn.7tv.app/emote/6257e7a3131d4588262aae2f/1x.webp' },
-    { code: 'Aware', src: 'https://cdn.7tv.app/emote/626795b38c5eb7bdd5c5c1c9/1x.webp' },
+    { code: 'Kappa', src: 'https://cdn.betterttv.net/emote/61f2f17c06fd6a9f5be2630a/1x' },
+    { code: 'KEKW', src: 'https://cdn.betterttv.net/emote/5e9c6c187e090362f8b0b9e8/1x' },
+    { code: 'OMEGALUL', src: 'https://cdn.betterttv.net/emote/583089f4737a8e61abb0186b/1x' },
+    { code: 'monkaS', src: 'https://cdn.betterttv.net/emote/56e9f494fff3cc5c35e5287e/1x' },
+    { code: 'PogChamp', src: 'https://cdn.betterttv.net/emote/61d538fd06fd6a9f5bdf6b44/1x' },
+    { code: 'Sadge', src: 'https://cdn.betterttv.net/emote/5e0fa9d40550d42106b8a489/1x' },
+    { code: 'COPIUM', src: 'https://cdn.betterttv.net/emote/5f64475bd7160803d895a112/1x' },
+    { code: 'PepeLaugh', src: 'https://cdn.betterttv.net/emote/5c548025009a2e73916b3a37/1x' },
+    { code: 'catJAM', src: 'https://cdn.betterttv.net/emote/5f1b0186cf6d2144653d2970/1x' },
+    { code: 'HYPERS', src: 'https://cdn.betterttv.net/emote/5980af4e3a1ac5330e89dc76/1x' },
+    { code: 'monkaW', src: 'https://cdn.betterttv.net/emote/59ca6551b27c823d5b1fd872/1x' },
+    { code: 'FeelsBadMan', src: 'https://cdn.betterttv.net/emote/5a6dee3b2620951f291ec6d0/1x' },
+    { code: 'FeelsGoodMan', src: 'https://cdn.betterttv.net/emote/5e74e336d6581c3724c0d49d/1x' },
+    { code: 'PepeHands', src: 'https://cdn.betterttv.net/emote/59f27b3f4ebd8047f54dee29/1x' },
+    { code: 'Pepega', src: 'https://cdn.betterttv.net/emote/5aca62163e290877a25481ad/1x' },
+    { code: 'widepeepoHappy', src: 'https://cdn.betterttv.net/emote/5e1a76dd8af14b5f1b438c04/1x' },
+    { code: 'peepoSad', src: 'https://cdn.betterttv.net/emote/5a16ddca8c22a247ead62ceb/1x' },
+    { code: 'Clap', src: 'https://cdn.betterttv.net/emote/55b6f480e66682f576dd94f5/1x' },
+    { code: 'POGGERS', src: 'https://cdn.betterttv.net/emote/58ae8407ff7b7276f8e594f2/1x' },
+    { code: 'monkaHmm', src: 'https://cdn.betterttv.net/emote/5aa16eb65d4a424654d7e3e5/1x' },
+    { code: 'LULW', src: 'https://cdn.betterttv.net/emote/5dc79d1b27360247dd6516ec/1x' },
+    { code: 'pepeMeltdown', src: 'https://cdn.betterttv.net/emote/5ba84271c9f0f66a9efc1c86/1x' },
+    { code: 'Aware', src: 'https://cdn.betterttv.net/emote/6151c623b63cc97ee6d39040/1x' },
   ];
   const TWITCH_MAP = {};
   TWITCH_EMOTES.forEach(e => { TWITCH_MAP[e.code.toLowerCase()] = e; });
