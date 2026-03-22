@@ -28,8 +28,8 @@
       "avatar": null
     }
   ],
-  "lastUpdated": "2026-03-23 02:35 МСК",
-  "lastSyncBy": "Лир",
+  "lastUpdated": "2026-03-22 23:38 МСК",
+  "lastSyncBy": "auto-sync",
   "phases": [
     {
       "id": 1,
@@ -351,7 +351,9 @@
         "Dev Tracker сайт запущен на GitHub Pages (Лир)",
         "Добавлены все 32 фазы разработки от Foundation до Launch Day (Лир)",
         "Автосинхронизация сайта при /sync от любого разработчика (Лир)",
-        "Elbics добавлен как collaborator в anomaly-site (Лир)"
+        "Elbics добавлен как collaborator в anomaly-site (Лир)",
+        "data.json через GitHub API — без кеша вообще (Лир)",
+        "обновлён changelog за 23 марта + задачи разработчиков (Лир)"
       ]
     },
     {
