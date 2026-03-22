@@ -28,7 +28,7 @@
       "avatar": null
     }
   ],
-  "lastUpdated": "2026-03-22 23:38 МСК",
+  "lastUpdated": "2026-03-22 23:46 МСК",
   "lastSyncBy": "auto-sync",
   "phases": [
     {
@@ -353,7 +353,8 @@
         "Автосинхронизация сайта при /sync от любого разработчика (Лир)",
         "Elbics добавлен как collaborator в anomaly-site (Лир)",
         "data.json через GitHub API — без кеша вообще (Лир)",
-        "обновлён changelog за 23 марта + задачи разработчиков (Лир)"
+        "обновлён changelog за 23 марта + задачи разработчиков (Лир)",
+        "repository_dispatch для мгновенного sync от stalker-extraction (Лир)"
       ]
     },
     {
