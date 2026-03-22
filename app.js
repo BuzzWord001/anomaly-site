@@ -2,15 +2,16 @@ document.addEventListener('DOMContentLoaded', () => {
   fetch('data.json')
     .then(r => r.json())
     .then(data => {
+      const weights = data.milestoneWeights || {};
       renderLastUpdated(data.lastUpdated);
-      renderProgress(data.phases);
-      renderMilestoneTags(data.phases);
+      renderProgress(data.phases, weights);
+      renderMilestoneTags(data.phases, weights);
       renderTeam(data.team);
       renderFilters(data.phases);
       renderPhases(data.phases);
       setupFilters(data.phases);
       renderChangelog(data.changelog || []);
-      renderFooterStats(data.phases);
+      renderFooterStats(data.phases, weights);
       setupBackToTop();
     })
     .catch(err => {
@@ -44,11 +45,20 @@ function renderLastUpdated(date) {
   document.getElementById('lastUpdatedRelative').textContent = '(' + relativeDate(date) + ')';
 }
 
+// --- Weighted calculation helper ---
+function weightedCalc(phases, weights) {
+  let totalW = 0, doneW = 0;
+  phases.forEach(p => {
+    const w = weights[p.milestone] || 1;
+    totalW += p.plans * w;
+    doneW += p.plansDone * w;
+  });
+  return { totalW, doneW, percent: totalW > 0 ? Math.round((doneW / totalW) * 100) : 0 };
+}
+
 // --- Progress bar ---
-function renderProgress(phases) {
-  const totalPlans = phases.reduce((s, p) => s + p.plans, 0);
-  const donePlans = phases.reduce((s, p) => s + p.plansDone, 0);
-  const percent = totalPlans > 0 ? Math.round((donePlans / totalPlans) * 100) : 0;
+function renderProgress(phases, weights) {
+  const { percent } = weightedCalc(phases, weights);
 
   document.getElementById('progressPercent').textContent = percent + '%';
 
@@ -59,7 +69,7 @@ function renderProgress(phases) {
 }
 
 // --- Milestone tags with mini progress ---
-function renderMilestoneTags(phases) {
+function renderMilestoneTags(phases, weights) {
   const container = document.getElementById('milestoneTags');
   const milestones = [...new Set(phases.map(p => p.milestone))];
 
@@ -217,13 +227,14 @@ function renderChangelog(changelog) {
 }
 
 // --- Footer stats ---
-function renderFooterStats(phases) {
+function renderFooterStats(phases, weights) {
   const container = document.getElementById('footerStats');
   const totalPhases = phases.length;
   const donePhases = phases.filter(p => p.status === 'done').length;
   const totalPlans = phases.reduce((s, p) => s + p.plans, 0);
   const donePlans = phases.reduce((s, p) => s + p.plansDone, 0);
   const inProgress = phases.filter(p => p.status === 'in_progress').length;
+  const { percent } = weightedCalc(phases, weights);
 
   container.innerHTML = `
     <div class="footer-stat">
@@ -239,8 +250,8 @@ function renderFooterStats(phases) {
       <span class="footer-stat-label">Планов</span>
     </div>
     <div class="footer-stat">
-      <span class="footer-stat-value">${inProgress}</span>
-      <span class="footer-stat-label">В работе</span>
+      <span class="footer-stat-value">${percent}%</span>
+      <span class="footer-stat-label">Прогресс</span>
     </div>
   `;
 }
