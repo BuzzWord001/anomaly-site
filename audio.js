@@ -3,9 +3,10 @@
 
 const ZoneAudio = (() => {
   let audio = null;
-  let isPlaying = false;
-  let isUnlocked = false;
-  let volume = 0.25; // 1/4 громкости по умолчанию
+  let isPlaying = false;    // реально играет
+  let isUnlocked = false;   // браузер разрешил
+  let wantPlay = true;      // пользователь хочет звук (по умолчанию ДА)
+  let volume = 0.25;
 
   function initAudio() {
     if (audio) return;
@@ -15,29 +16,33 @@ const ZoneAudio = (() => {
     audio.preload = 'auto';
   }
 
-  function start() {
-    if (isPlaying) return;
+  function tryPlay() {
+    if (!wantPlay || isPlaying) return;
     initAudio();
     audio.volume = volume;
     audio.play().then(() => {
       isPlaying = true;
       isUnlocked = true;
       updateUI();
-    }).catch(() => {
-      // Autoplay blocked — will retry on interaction
-    });
+    }).catch(() => {});
   }
 
   function stop() {
-    if (!isPlaying || !audio) return;
+    if (!audio) return;
     audio.pause();
     isPlaying = false;
+    wantPlay = false;
     updateUI();
   }
 
   function toggle() {
-    if (isPlaying) stop();
-    else start();
+    if (wantPlay && isPlaying) {
+      stop();
+    } else {
+      wantPlay = true;
+      updateUI();
+      tryPlay();
+    }
   }
 
   function setVolume(val) {
@@ -47,21 +52,21 @@ const ZoneAudio = (() => {
   }
 
   // ========== UI ==========
+  // UI отражает wantPlay (намерение), а не isPlaying (факт)
   function updateUI() {
     const btn = document.getElementById('audioToggleBtn');
     if (!btn) return;
-    btn.classList.toggle('active', isPlaying);
+    btn.classList.toggle('active', wantPlay);
 
     const icon = btn.querySelector('.audio-icon-svg');
     if (icon) {
-      icon.innerHTML = isPlaying ? getIconOn() : getIconOff();
+      icon.innerHTML = wantPlay ? getIconOn() : getIconOff();
     }
 
     const slider = document.getElementById('audioVolumeSlider');
-    if (slider) slider.style.opacity = isPlaying ? '1' : '0.4';
+    if (slider) slider.style.opacity = wantPlay ? '1' : '0.4';
   }
 
-  // Speaker icon — ON (with sound waves)
   function getIconOn() {
     return `
       <polygon points="2,8 2,16 6,16 12,20 12,4 6,8" fill="currentColor"/>
@@ -69,7 +74,6 @@ const ZoneAudio = (() => {
       <path d="M19 6c0 0 2.5 2.2 2.5 6s-2.5 6-2.5 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>`;
   }
 
-  // Speaker icon — OFF (muted, with X)
   function getIconOff() {
     return `
       <polygon points="2,8 2,16 6,16 12,20 12,4 6,8" fill="currentColor" opacity="0.35"/>
@@ -86,6 +90,7 @@ const ZoneAudio = (() => {
     const panel = document.getElementById('audioControl');
     if (!panel) return;
 
+    // Рендерим сразу как АКТИВНЫЙ — звук по умолчанию включён
     panel.innerHTML = `
       <button class="audio-toggle-btn active" id="audioToggleBtn" title="ЗВУК ЗОНЫ">
         <svg class="audio-icon-svg" viewBox="0 0 24 24" width="20" height="20">
@@ -105,7 +110,7 @@ const ZoneAudio = (() => {
       </div>
     `;
 
-    // Button click
+    // Button
     document.getElementById('audioToggleBtn').addEventListener('click', (e) => {
       e.stopPropagation();
       toggle();
@@ -128,37 +133,31 @@ const ZoneAudio = (() => {
       const val = parseInt(slider.value) / 100;
       setVolume(val);
       updateSliderVisual();
-      if (!isPlaying && val > 0) start();
-      if (isPlaying && val === 0) stop();
+      if (val > 0 && !isPlaying) { wantPlay = true; tryPlay(); updateUI(); }
+      if (val === 0 && isPlaying) stop();
     });
     slider.addEventListener('click', (e) => e.stopPropagation());
 
-    // --- Auto-start on ANY interaction ---
+    // --- Автозапуск: сразу пробуем, при неудаче — на любое действие ---
     const events = ['click', 'touchstart', 'mousemove', 'scroll', 'keydown'];
 
-    function autoStart() {
-      if (isUnlocked) return;
-      initAudio();
-      audio.play().then(() => {
-        isPlaying = true;
-        isUnlocked = true;
-        updateUI();
-        events.forEach(ev => document.removeEventListener(ev, autoStart, { capture: true }));
-      }).catch(() => {});
+    function onInteraction() {
+      if (isUnlocked || !wantPlay) return;
+      tryPlay();
+      if (isUnlocked) {
+        events.forEach(ev => document.removeEventListener(ev, onInteraction, { capture: true }));
+      }
     }
 
-    // Try immediate playback
-    initAudio();
-    audio.play().then(() => {
-      isPlaying = true;
-      isUnlocked = true;
-      updateUI();
-    }).catch(() => {
-      // Blocked — wait for ANY user gesture, then auto-play
+    // Попытка autoplay
+    tryPlay();
+
+    // Если заблокировано — слушаем любое действие пользователя
+    if (!isPlaying) {
       events.forEach(ev => {
-        document.addEventListener(ev, autoStart, { capture: true, passive: true });
+        document.addEventListener(ev, onInteraction, { capture: true, passive: true });
       });
-    });
+    }
   }
 
   if (document.readyState === 'loading') {
@@ -167,5 +166,5 @@ const ZoneAudio = (() => {
     createUI();
   }
 
-  return { start, stop, toggle, setVolume, isPlaying: () => isPlaying };
+  return { start: tryPlay, stop, toggle, setVolume, isPlaying: () => isPlaying };
 })();
