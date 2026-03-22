@@ -108,8 +108,11 @@ function parseTeamWork(content) {
       let item = line.replace(/^- /, '').replace(/\*\*/g, '').trim();
       // Убираем скобки с техническими деталями
       item = item.replace(/\s*\([^)]*\)\s*/g, ' ').trim();
-      // Ограничиваем длину
-      if (item.length > 70) item = item.slice(0, 67) + '...';
+      // Убираем перечисления после двоеточия если слишком длинные
+      if (item.includes(':') && item.length > 55) {
+        item = item.split(':')[0].trim();
+      }
+      if (item.length > 55) item = item.slice(0, 52) + '...';
       if (item) team[currentDev].recentWork.push(item);
     }
   }
