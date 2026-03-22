@@ -112,56 +112,63 @@ function parseTeamWork(content) {
   return team;
 }
 
-// --- Parse Лир's task from multiple sources ---
-function getLirTask(teamWorkMaster, teamWorkLir, anomalyCommits) {
-  // Priority: feat/zone1-art branch > master branch > anomaly-site commits
+// --- Извлечь конкретную задачу из последнего коммита ---
+function extractTaskFromCommit(commitMsg) {
+  // Убираем префикс feat:/fix:/chore: и Co-Authored строки
+  let msg = commitMsg.replace(/^(feat|fix|chore|docs|sync|merge):\s*/i, '').trim();
+  // Берём только первую строку
+  msg = msg.split('\n')[0].trim();
+  // Ограничиваем длину
+  if (msg.length > 80) msg = msg.slice(0, 77) + '...';
+  return msg;
+}
 
-  // 1. Try Лир's own branch
+// --- Определить конкретную задачу Elbics из team_active_work ---
+function getElbicsTask(teamWorkContent) {
+  const parsed = parseTeamWork(teamWorkContent);
+  if (!parsed.elbics) return null;
+
+  const tw = parsed.elbics;
+  // Берём последнее конкретное достижение, не общий статус
+  if (tw.recentWork.length > 0) {
+    // Первый пункт recentWork — самое свежее
+    return tw.recentWork[0];
+  }
+  return tw.currentTask || null;
+}
+
+// --- Определить конкретную задачу Лира из нескольких источников ---
+function getLirTask(teamWorkMaster, teamWorkLir, anomalyCommits) {
+  // 1. Ветка Лира — последняя конкретная работа
   if (teamWorkLir) {
     const parsed = parseTeamWork(teamWorkLir);
+    if (parsed.lir && parsed.lir.recentWork.length > 0) {
+      return parsed.lir.recentWork[0]; // самый свежий пункт
+    }
     if (parsed.lir && parsed.lir.currentTask && !parsed.lir.currentTask.includes('БЕЗ ЗАДАЧ')) {
-      let task = parsed.lir.currentTask;
-      if (parsed.lir.recentWork.length > 0 && task.length < 60) {
-        task += ' | ' + parsed.lir.recentWork.slice(0, 2).join(', ');
-      }
-      return task;
+      return parsed.lir.currentTask;
     }
   }
 
-  // 2. Try master branch
+  // 2. Последний коммит в anomaly-site (не auto-sync)
+  if (anomalyCommits) {
+    const commits = anomalyCommits.split('\n').filter(l =>
+      l.trim() && !l.includes('auto-sync') && !l.includes('merge')
+    );
+    if (commits.length > 0) {
+      return extractTaskFromCommit(commits[0]);
+    }
+  }
+
+  // 3. Master ветка
   if (teamWorkMaster) {
     const parsed = parseTeamWork(teamWorkMaster);
-    if (parsed.lir && parsed.lir.currentTask && !parsed.lir.currentTask.includes('БЕЗ ЗАДАЧ')) {
-      let task = parsed.lir.currentTask;
-      if (parsed.lir.recentWork.length > 0 && task.length < 60) {
-        task += ' | ' + parsed.lir.recentWork.slice(0, 2).join(', ');
-      }
-      return task;
+    if (parsed.lir && parsed.lir.recentWork.length > 0) {
+      return parsed.lir.recentWork[0];
     }
   }
 
-  // 3. Derive from anomaly-site recent commits
-  if (anomalyCommits) {
-    const commits = anomalyCommits.split('\n').filter(l => l.trim() && !l.includes('auto-sync'));
-    if (commits.length > 0) {
-      // Summarize recent work from commit messages
-      const keywords = new Set();
-      for (const c of commits.slice(0, 10)) {
-        if (c.match(/audio|звук|трек|mp3|мелод/i)) keywords.add('аудио-система');
-        if (c.match(/glitch|глитч|иконк|icon/i)) keywords.add('UI эффекты');
-        if (c.match(/sync|синх|auto/i)) keywords.add('auto-sync');
-        if (c.match(/slider|ползун|volume|громк/i)) keywords.add('управление звуком');
-        if (c.match(/data\.json|phase|фаз/i)) keywords.add('обновление данных');
-        if (c.match(/style|css|дизайн/i)) keywords.add('дизайн');
-        if (c.match(/chat|чат|firebase/i)) keywords.add('чат');
-      }
-      if (keywords.size > 0) {
-        return 'Dev Tracker сайт: ' + [...keywords].slice(0, 3).join(', ');
-      }
-    }
-  }
-
-  return 'Dev Tracker сайт, подготовка к новым задачам';
+  return 'Подготовка к новым задачам';
 }
 
 // --- Update data.json ---
@@ -184,14 +191,9 @@ function updateData(taskboardContent, teamWorkContent) {
   // (включая сайт, трекер, UI, карты, бэкенд и т.д.)
   if (data.team) {
     for (const member of data.team) {
-      if (member.name === 'Elbics' && teamWork.elbics) {
-        const tw = teamWork.elbics;
-        // Берём статус + первые достижения для контекста
-        let task = tw.currentTask || member.currentTask;
-        if (tw.recentWork.length > 0 && task.length < 60) {
-          task += ' | ' + tw.recentWork.slice(0, 2).join(', ');
-        }
-        member.currentTask = task;
+      if (member.name === 'Elbics') {
+        const task = getElbicsTask(teamWorkContent);
+        if (task) member.currentTask = task;
       }
       if (member.name === 'Лир') {
         // Собираем задачу из всех источников
