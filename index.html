@@ -123,7 +123,7 @@
   <!-- ZONE CHAT (always visible, top-left) -->
   <div class="zone-chat" id="zoneChat">
     <div class="zone-chat-header">
-      <span class="zone-chat-title">&#9762; ЧАТ ЗОНЫ</span>
+      <span class="zone-chat-title">☢ ЧАТ ЗОНЫ</span>
       <span class="zone-chat-online" id="onlineCounter">
         <span class="online-dot"></span>
         <span id="onlineCount">1</span> в Зоне
@@ -133,8 +133,13 @@
 
     <!-- Profile setup (first visit) -->
     <div class="zone-chat-profile" id="chatProfile">
-      <div class="zone-chat-profile-title">&#9888; ИДЕНТИФИКАЦИЯ СТАЛКЕРА</div>
-      <input type="text" id="profileNickname" class="zone-chat-profile-input" placeholder="Позывной..." maxlength="20">
+      <div class="zone-chat-profile-title">
+        <svg class="zone-chat-profile-rad-icon" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="9" cy="9" r="2" fill="#c8d820"/><path d="M9 1.5A7.5 7.5 0 0 0 1.5 9h3.3a4.2 4.2 0 0 1 2.1-3.64L5.25 2.4A7.45 7.45 0 0 0 9 1.5z" fill="#b8cc00" opacity="0.85"/><path d="M16.5 9A7.5 7.5 0 0 0 12.75 2.4l-1.65 2.96A4.2 4.2 0 0 1 13.2 9h3.3z" fill="#b8cc00" opacity="0.85"/><path d="M9 16.5a7.45 7.45 0 0 0 3.75-1.02l-1.65-2.96a4.2 4.2 0 0 1-4.2 0L5.25 15.48A7.45 7.45 0 0 0 9 16.5z" fill="#b8cc00" opacity="0.85"/><circle cx="9" cy="9" r="2" fill="#eeff33"/>
+        </svg>
+        ИДЕНТИФИКАЦИЯ СТАЛКЕРА
+      </div>
+      <input type="text" id="profileNickname" class="zone-chat-profile-input" placeholder="Позывной..." maxlength="20" autocomplete="off">
       <div class="zone-chat-color-row">
         <span class="zone-chat-color-label">Цвет:</span>
         <input type="color" id="profileColor" value="#ff4444" class="zone-chat-color-picker">
@@ -142,14 +147,18 @@
       <button id="profileSaveBtn" class="zone-chat-profile-save">ВОЙТИ В ЗОНУ</button>
     </div>
 
-    <!-- Chat body (hidden until profile set) -->
+    <!-- Chat body -->
     <div class="zone-chat-body" id="chatBody" style="display:none;">
       <div class="zone-chat-messages" id="chatMessages"></div>
       <div class="zone-chat-emoji-panel" id="emojiPanel" style="display:none;"></div>
       <div class="zone-chat-input-row">
-        <button class="zone-chat-emoji-btn" id="emojiBtnToggle" title="Эмодзи">&#9762;</button>
-        <input type="text" id="chatInput" class="zone-chat-input" placeholder="Сообщение..." maxlength="300">
-        <button id="chatSendBtn" class="zone-chat-send">&#9658;</button>
+        <button class="zone-chat-emoji-btn" id="emojiBtnToggle" title="Эмодзи">
+          <svg viewBox="0 0 18 18" width="16" height="16"><circle cx="9" cy="9" r="2" fill="#c8d820"/><path d="M9 1.5A7.5 7.5 0 0 0 1.5 9h3.3a4.2 4.2 0 0 1 2.1-3.64L5.25 2.4A7.45 7.45 0 0 0 9 1.5z" fill="#b8cc00" opacity="0.85"/><path d="M16.5 9A7.5 7.5 0 0 0 12.75 2.4l-1.65 2.96A4.2 4.2 0 0 1 13.2 9h3.3z" fill="#b8cc00" opacity="0.85"/><path d="M9 16.5a7.45 7.45 0 0 0 3.75-1.02l-1.65-2.96a4.2 4.2 0 0 1-4.2 0L5.25 15.48A7.45 7.45 0 0 0 9 16.5z" fill="#b8cc00" opacity="0.85"/><circle cx="9" cy="9" r="2" fill="#eeff33"/></svg>
+        </button>
+        <input type="text" id="chatInput" class="zone-chat-input" placeholder="Сообщение..." maxlength="300" autocomplete="off">
+        <button id="chatSendBtn" class="zone-chat-send" title="Отправить">
+          <svg viewBox="0 0 18 18" width="14" height="14"><path d="M2 2l14 7-14 7V11l10-2-10-2V2z" fill="currentColor"/></svg>
+        </button>
       </div>
     </div>
   </div>
