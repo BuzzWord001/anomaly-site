@@ -229,48 +229,79 @@ function updateData(taskboardContent, teamWorkContent) {
     }
   }
 
-  // --- Auto-update changelog from phase changes ---
+  // --- Auto-update changelog ---
   const now = new Date();
   const msk = new Date(now.getTime() + 3 * 60 * 60 * 1000);
   const todayStr = msk.toISOString().slice(0, 10);
   const timeStr = msk.toISOString().slice(11, 16);
 
-  // Compare phases with existing data to detect changes
+  // Read OLD data before we wrote changes
   const oldData = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
   const newEntries = [];
 
+  // 1. Detect phase changes
   for (const tbPhase of tbPhases) {
     const oldPhase = oldData.phases.find(p => p.id === tbPhase.id);
     if (!oldPhase) continue;
-
-    // Phase completed
     if (tbPhase.status === 'done' && oldPhase.status !== 'done') {
       newEntries.push(`Phase ${tbPhase.id} COMPLETE — ${tbPhase.name} (${tbPhase.plansDone}/${tbPhase.plans} планов)`);
-    }
-    // Phase started
-    else if (tbPhase.status === 'in_progress' && oldPhase.status !== 'in_progress') {
+    } else if (tbPhase.status === 'in_progress' && oldPhase.status !== 'in_progress') {
       newEntries.push(`Phase ${tbPhase.id} начата — ${tbPhase.name}`);
-    }
-    // Plans progressed
-    else if (tbPhase.plansDone > oldPhase.plansDone && tbPhase.status === 'in_progress') {
+    } else if (tbPhase.plansDone > oldPhase.plansDone && tbPhase.status === 'in_progress') {
       newEntries.push(`Phase ${tbPhase.id} — ${tbPhase.name} (${tbPhase.plansDone}/${tbPhase.plans} планов)`);
     }
   }
 
-  // Add new changelog entries if any
+  // 2. Detect dev task changes — add to changelog when task changed
+  if (oldData.team && data.team) {
+    for (const member of data.team) {
+      const oldMember = oldData.team.find(m => m.name === member.name);
+      if (oldMember && member.currentTask !== oldMember.currentTask && member.currentTask) {
+        newEntries.push(`${member.name}: ${member.currentTask}`);
+      }
+    }
+  }
+
+  // 3. Detect anomaly-site work from commits (for Лир)
+  let anomalyCommitsContent = '';
+  try { if (ANOMALY_COMMITS_PATH) anomalyCommitsContent = fs.readFileSync(ANOMALY_COMMITS_PATH, 'utf8'); } catch(e) {}
+  if (anomalyCommitsContent) {
+    const commits = anomalyCommitsContent.split('\n').filter(l =>
+      l.trim() && !l.includes('auto-sync') && !l.includes('merge') && !l.includes('Co-Authored')
+    );
+    // Check last changelog to avoid duplicates
+    const existingEntries = new Set();
+    if (data.changelog && data.changelog[0]) {
+      data.changelog[0].entries.forEach(e => existingEntries.add(e));
+    }
+    // Add significant commits as changelog entries
+    for (const c of commits.slice(0, 5)) {
+      let msg = c.replace(/^(feat|fix|chore|docs|sync):\s*/i, '').trim();
+      if (msg.length > 70) msg = msg.slice(0, 67) + '...';
+      const entry = msg + ' (Лир)';
+      if (!existingEntries.has(entry) && !newEntries.includes(entry)) {
+        newEntries.push(entry);
+      }
+    }
+  }
+
+  // Add to changelog
+  if (!data.changelog) data.changelog = [];
   if (newEntries.length > 0) {
-    if (!data.changelog) data.changelog = [];
     const todayLog = data.changelog.find(c => c.date === todayStr);
     if (todayLog) {
-      // Add only entries that don't already exist
       for (const entry of newEntries) {
         if (!todayLog.entries.includes(entry)) {
-          todayLog.entries.unshift(entry);
+          todayLog.entries.push(entry);
         }
       }
     } else {
       data.changelog.unshift({ date: todayStr, entries: newEntries });
     }
+  }
+  // Ensure today exists in changelog even without new entries
+  if (!data.changelog.find(c => c.date === todayStr) && todayStr !== (oldData.changelog[0] || {}).date) {
+    // Don't create empty days
   }
 
   data.lastUpdated = `${todayStr} ${timeStr} МСК`;
