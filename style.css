@@ -1419,3 +1419,67 @@ footer {
   background: var(--red-dark);
   color: white;
 }
+
+/* ===== AUDIO TOGGLE ===== */
+.audio-toggle {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  width: 50px;
+  height: 50px;
+  background: var(--bg-card);
+  border: 1px solid var(--amber);
+  border-radius: 50%;
+  color: var(--amber);
+  font-size: 1.3rem;
+  cursor: pointer;
+  z-index: 51;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px rgba(232, 160, 32, 0.3);
+}
+
+.audio-toggle:hover {
+  background: rgba(232, 160, 32, 0.15);
+  color: var(--amber-glow);
+  box-shadow: 0 0 25px rgba(232, 160, 32, 0.5);
+  transform: scale(1.1);
+}
+
+.audio-toggle.audio-muted {
+  border-color: var(--text-dim);
+  color: var(--text-dim);
+  box-shadow: none;
+}
+
+.audio-toggle.audio-muted:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+  box-shadow: 0 0 15px rgba(232, 160, 32, 0.3);
+}
+
+.audio-toggle-icon {
+  line-height: 1;
+}
+
+/* Pulse animation when playing */
+.audio-toggle:not(.audio-muted) {
+  animation: audioPulse 3s ease-in-out infinite;
+}
+
+@keyframes audioPulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(232, 160, 32, 0.3); }
+  50% { box-shadow: 0 0 25px rgba(232, 160, 32, 0.5), 0 0 40px rgba(232, 160, 32, 0.15); }
+}
+
+@media (max-width: 600px) {
+  .audio-toggle {
+    bottom: 16px;
+    left: 16px;
+    width: 42px;
+    height: 42px;
+    font-size: 1.1rem;
+  }
+}
