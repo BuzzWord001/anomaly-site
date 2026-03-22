@@ -45,6 +45,18 @@
   const TEXT_EMOJIS = ['artifact','anomaly','emission','bloodsucker','stalker','zone','radiation','medkit','ammo','loot'];
   const TEXT_EMOJI_SET = new Set(TEXT_EMOJIS);
 
+  // --- STANDARD EMOJI CATEGORIES ---
+  const STD_EMOJIS = {
+    'Смайлы': ['😀','😂','🤣','😅','😊','😎','🤔','😏','😒','😢','😭','😤','🤬','😱','🥺','😴','🤮','🤡','💩','👻','🤖','👽','🫡','🫠','😈'],
+    'Жесты': ['👍','👎','👏','🤝','✌️','🤞','🤙','👊','✊','💪','🫶','🖕','👋','🙏','🤘'],
+    'Сердца': ['❤️','🖤','💔','❤️‍🔥','💛','💚','💜','🤎','💯','💢','💥','✨','🔥'],
+    'Люди': ['🧑‍💻','🧟','🪖','🥷','💂','🕵️','👤','💀','☠️','🤺','🏃','🧎'],
+    'Животные': ['🐺','🐻','🦅','🐍','🕷️','🦇','🐀','🐗','🦎','🐊'],
+    'Еда': ['🍺','🍻','🥃','🍖','🥫','🥩','🧃','☕','🫗'],
+    'Предметы': ['🔫','🗡️','🪓','💣','🧨','💉','💊','🩹','🔦','🧭','📻','🔑','🪙','💰','🎒','🗺️','⛏️','🔧','🪚'],
+    'Символы': ['⚠️','☢️','☣️','⚡','🚫','❌','✅','⭕','🔴','🟢','🟡','🔵','⬛','💠','🏴','🏁','📌','📍']
+  };
+
   // --- STATE ---
   let userId = localStorage.getItem(STORAGE_UID);
   if (!userId) { userId = 'u_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); localStorage.setItem(STORAGE_UID, userId); }
@@ -325,11 +337,22 @@
 
   // --- EMOJI PANEL ---
   function buildEmojiPanel() {
-    let h = '<div class="zone-chat-emoji-section-title">Иконки Зоны</div><div class="zone-chat-emoji-grid">';
+    let h = '';
+    // Zone SVG icons
+    h += '<div class="zone-chat-emoji-section-title">Зона</div><div class="zone-chat-emoji-grid">';
     EMOJI_CHARS.forEach(ch => { h += '<button class="zone-chat-emoji-item" data-em="' + ch + '">' + SVG_EMOJIS[ch] + '</button>'; });
-    h += '</div><div class="zone-chat-emoji-section-title">Теги</div><div class="zone-chat-emoji-grid">';
+    h += '</div>';
+    // Zone text tags
+    h += '<div class="zone-chat-emoji-section-title">Теги</div><div class="zone-chat-emoji-grid">';
     TEXT_EMOJIS.forEach(e => { h += '<button class="zone-chat-emoji-item text-emoji" data-em=":' + e + ':">' + e + '</button>'; });
-    h += '</div>'; els.emojiPanel.innerHTML = h;
+    h += '</div>';
+    // Standard emoji categories
+    for (const [cat, emojis] of Object.entries(STD_EMOJIS)) {
+      h += '<div class="zone-chat-emoji-section-title">' + cat + '</div><div class="zone-chat-emoji-grid">';
+      emojis.forEach(em => { h += '<button class="zone-chat-emoji-item" data-em="' + em + '">' + em + '</button>'; });
+      h += '</div>';
+    }
+    els.emojiPanel.innerHTML = h;
   }
   function toggleEmoji() { emojiOpen = !emojiOpen; els.emojiPanel.style.display = emojiOpen ? 'block' : 'none'; }
   function insertEmoji(em) {
