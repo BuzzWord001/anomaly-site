@@ -212,22 +212,66 @@ function setupFilters(phases) {
   });
 }
 
-// --- Changelog ---
+// --- Changelog (lazy load, infinite scroll) ---
+let changelogData = [];
+let changelogShown = 0;
+const CHANGELOG_BATCH = 20;
+
 function renderChangelog(changelog) {
   const container = document.getElementById('changelogList');
+  changelogData = changelog;
+  changelogShown = 0;
+
   if (!changelog.length) {
     container.innerHTML = '<p style="text-align:center;color:var(--text-dim);">Нет записей</p>';
     return;
   }
 
-  container.innerHTML = changelog.map((entry, i) => `
-    <div class="changelog-entry fade-in" style="animation-delay: ${i * 0.1}s">
+  container.innerHTML = '';
+  loadMoreChangelog();
+
+  // Infinite scroll inside changelog container
+  container.addEventListener('scroll', () => {
+    if (changelogShown >= changelogData.length) return;
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    if (scrollTop + clientHeight >= scrollHeight - 50) {
+      loadMoreChangelog();
+    }
+  });
+}
+
+function loadMoreChangelog() {
+  const container = document.getElementById('changelogList');
+  const end = Math.min(changelogShown + CHANGELOG_BATCH, changelogData.length);
+
+  // Remove "load more" button if exists
+  const oldBtn = container.querySelector('.changelog-load-more');
+  if (oldBtn) oldBtn.remove();
+
+  for (let i = changelogShown; i < end; i++) {
+    const entry = changelogData[i];
+    const div = document.createElement('div');
+    div.className = 'changelog-entry fade-in';
+    div.style.animationDelay = ((i - changelogShown) * 0.05) + 's';
+    div.innerHTML = `
       <div class="changelog-date">${entry.date} <span class="relative-date">${relativeDate(entry.date)}</span></div>
       <ul class="changelog-items">
         ${entry.entries.map(e => `<li>${e}</li>`).join('')}
       </ul>
-    </div>
-  `).join('');
+    `;
+    container.appendChild(div);
+  }
+
+  changelogShown = end;
+
+  // Show "load more" button if there's more
+  if (changelogShown < changelogData.length) {
+    const btn = document.createElement('button');
+    btn.className = 'changelog-load-more';
+    btn.textContent = '\u25BC Показать ранние (' + (changelogData.length - changelogShown) + ')';
+    btn.addEventListener('click', () => loadMoreChangelog());
+    container.appendChild(btn);
+  }
 }
 
 // --- Footer stats ---

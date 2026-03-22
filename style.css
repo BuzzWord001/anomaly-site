@@ -924,6 +924,28 @@ footer {
   background: var(--red);
 }
 
+.changelog-load-more {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 16px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-dim);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.75rem;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+
+.changelog-load-more:hover {
+  color: var(--red);
+  border-color: var(--red);
+  background: rgba(212, 32, 32, 0.08);
+}
+
 .changelog-entry {
   border-left: 2px solid var(--border);
   padding: 0 0 24px 20px;
