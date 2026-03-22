@@ -432,9 +432,96 @@
       ctx.globalCompositeOperation = 'source-over';
     }
 
+    // ====== ELECTRIC AURA — slow pulsing current covering all liquid ======
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    // 1. Deep electric pulse — whole liquid breathes with current
+    const ePulse = 0.04 + 0.03 * Math.sin(t * 0.0015);
+    ctx.fillStyle = `rgba(60, 120, 255, ${ePulse})`;
+    ctx.fillRect(0, 0, barW, barH);
+
+    // 2. Crawling electric veins — thin lines that slowly drift across
+    const veinCount = 12;
+    for (let v = 0; v < veinCount; v++) {
+      const vPhase = t * 0.0004 + v * 1.3;
+      const vx = ((vPhase * (0.8 + v * 0.1)) % 1) * barW;
+      const vy1 = Math.sin(t * 0.001 + v * 0.7) * barH * 0.3 + barH * 0.3;
+      const vy2 = vy1 + (Math.random() - 0.5) * barH * 0.6;
+      const va = 0.08 + 0.06 * Math.sin(t * 0.002 + v * 2);
+
+      ctx.beginPath();
+      ctx.moveTo(vx, vy1);
+      // Jagged path
+      const segs = 4 + Math.floor(Math.random() * 3);
+      for (let s = 1; s <= segs; s++) {
+        ctx.lineTo(
+          vx + (Math.random() - 0.5) * 20,
+          vy1 + (vy2 - vy1) * (s / segs) + (Math.random() - 0.5) * 6
+        );
+      }
+      ctx.strokeStyle = `rgba(140, 190, 255, ${va})`;
+      ctx.lineWidth = 0.5 + Math.random() * 0.5;
+      ctx.shadowColor = `rgba(80, 150, 255, ${va * 0.8})`;
+      ctx.shadowBlur = 4;
+      ctx.stroke();
+    }
+
+    // 3. Slow pulsing glow nodes — electric charge pooling
+    for (let n = 0; n < 6; n++) {
+      const nx = (Math.sin(t * 0.0003 * (n + 1) + n * 1.1) * 0.5 + 0.5) * barW;
+      const ny = (Math.cos(t * 0.0004 * (n + 1) + n * 0.8) * 0.3 + 0.5) * barH;
+      const nPulse = 0.06 + 0.05 * Math.sin(t * 0.0025 + n * 1.5);
+      const nr = 10 + 8 * Math.sin(t * 0.002 + n);
+      const ng = ctx.createRadialGradient(nx, ny, 0, nx, ny, nr);
+      ng.addColorStop(0, `rgba(120, 180, 255, ${nPulse})`);
+      ng.addColorStop(0.5, `rgba(60, 100, 220, ${nPulse * 0.4})`);
+      ng.addColorStop(1, 'transparent');
+      ctx.fillStyle = ng;
+      ctx.fillRect(nx - nr, ny - nr, nr * 2, nr * 2);
+    }
+
+    // 4. Surface crackle — tiny micro-arcs on top surface
+    const cracklePulse = Math.sin(t * 0.002);
+    if (cracklePulse > 0.3) {
+      const numCrackles = 3 + Math.floor(cracklePulse * 4);
+      for (let c = 0; c < numCrackles; c++) {
+        const cx = Math.random() * barW;
+        const cy = 1 + Math.random() * 4;
+        const cLen = 5 + Math.random() * 15;
+        const cAngle = -Math.PI / 2 + (Math.random() - 0.5) * 1.2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        let crX = cx, crY = cy;
+        for (let s = 0; s < 3; s++) {
+          crX += Math.cos(cAngle) * cLen / 3 + (Math.random() - 0.5) * 5;
+          crY += Math.sin(cAngle) * cLen / 3 + (Math.random() - 0.5) * 3;
+          ctx.lineTo(crX, crY);
+        }
+        const ca = 0.15 + 0.1 * Math.random();
+        ctx.strokeStyle = `rgba(180, 220, 255, ${ca})`;
+        ctx.lineWidth = 0.5;
+        ctx.shadowColor = `rgba(100, 170, 255, ${ca})`;
+        ctx.shadowBlur = 3;
+        ctx.stroke();
+      }
+    }
+
+    // 5. Bottom edge glow — current pooling at bottom
+    const bgPulse = 0.04 + 0.03 * Math.sin(t * 0.0018 + 1);
+    const bg = ctx.createLinearGradient(0, barH, 0, barH - 5);
+    bg.addColorStop(0, `rgba(60, 130, 255, ${bgPulse})`);
+    bg.addColorStop(1, 'transparent');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, barH - 5, barW, 5);
+
+    ctx.shadowBlur = 0;
+    ctx.restore();
+    ctx.globalCompositeOperation = 'source-over';
+
     // Surface shimmer (thin bright line on top)
     const sg = ctx.createLinearGradient(0, 0, 0, 5);
-    sg.addColorStop(0, `rgba(255, 210, 170, ${0.12 + 0.08 * Math.sin(t * 0.003)})`);
+    sg.addColorStop(0, `rgba(180, 210, 255, ${0.1 + 0.08 * Math.sin(t * 0.002)})`);
     sg.addColorStop(1, 'transparent');
     ctx.fillStyle = sg;
     ctx.fillRect(0, 0, barW, 5);
