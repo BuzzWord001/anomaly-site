@@ -1420,66 +1420,173 @@ footer {
   color: white;
 }
 
-/* ===== AUDIO TOGGLE ===== */
-.audio-toggle {
-  position: fixed;
-  bottom: 30px;
-  left: 30px;
-  width: 50px;
-  height: 50px;
-  background: var(--bg-card);
+/* ===== AUDIO CONTROL (header) ===== */
+.audio-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  justify-content: center;
+  user-select: none;
+}
+
+.audio-toggle-btn {
+  width: 36px;
+  height: 36px;
+  background: rgba(15, 15, 15, 0.7);
   border: 1px solid var(--amber);
   border-radius: 50%;
-  color: var(--amber);
-  font-size: 1.3rem;
+  color: var(--text-dim);
   cursor: pointer;
-  z-index: 51;
-  transition: all 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 15px rgba(232, 160, 32, 0.3);
+  transition: all 0.3s;
+  flex-shrink: 0;
+  padding: 0;
 }
 
-.audio-toggle:hover {
-  background: rgba(232, 160, 32, 0.15);
-  color: var(--amber-glow);
-  box-shadow: 0 0 25px rgba(232, 160, 32, 0.5);
-  transform: scale(1.1);
-}
-
-.audio-toggle.audio-muted {
-  border-color: var(--text-dim);
-  color: var(--text-dim);
-  box-shadow: none;
-}
-
-.audio-toggle.audio-muted:hover {
-  border-color: var(--amber);
+.audio-toggle-btn:hover {
   color: var(--amber);
-  box-shadow: 0 0 15px rgba(232, 160, 32, 0.3);
+  border-color: var(--amber-glow);
+  box-shadow: 0 0 12px rgba(232, 160, 32, 0.3);
 }
 
-.audio-toggle-icon {
-  line-height: 1;
+.audio-toggle-btn.active {
+  color: var(--amber);
+  border-color: var(--amber);
+  box-shadow: 0 0 10px rgba(232, 160, 32, 0.25);
+  animation: audioBtnPulse 3s ease-in-out infinite;
 }
 
-/* Pulse animation when playing */
-.audio-toggle:not(.audio-muted) {
-  animation: audioPulse 3s ease-in-out infinite;
+@keyframes audioBtnPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(232, 160, 32, 0.25); }
+  50% { box-shadow: 0 0 18px rgba(232, 160, 32, 0.45); }
 }
 
-@keyframes audioPulse {
-  0%, 100% { box-shadow: 0 0 15px rgba(232, 160, 32, 0.3); }
-  50% { box-shadow: 0 0 25px rgba(232, 160, 32, 0.5), 0 0 40px rgba(232, 160, 32, 0.15); }
+.audio-icon-svg {
+  display: block;
+}
+
+/* Slider container */
+.audio-slider-wrap {
+  position: relative;
+  width: 110px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.audio-slider-track {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 4px;
+  background: rgba(80, 80, 80, 0.5);
+  border-radius: 2px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.audio-slider-fill {
+  height: 100%;
+  width: 35%;
+  background: linear-gradient(90deg, var(--amber), var(--red));
+  border-radius: 2px;
+  transition: width 0.05s;
+}
+
+.audio-slider-glow {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  height: 8px;
+  width: 35%;
+  background: linear-gradient(90deg, transparent, rgba(232, 160, 32, 0.3));
+  filter: blur(3px);
+  border-radius: 4px;
+  transition: width 0.05s;
+  pointer-events: none;
+}
+
+.audio-volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 24px;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+  margin: 0;
+}
+
+.audio-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--amber);
+  border: 2px solid var(--bg-dark);
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(232, 160, 32, 0.5);
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.audio-volume-slider::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 12px rgba(232, 160, 32, 0.7);
+  transform: scale(1.2);
+}
+
+.audio-volume-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: var(--amber);
+  border: 2px solid var(--bg-dark);
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(232, 160, 32, 0.5);
+  cursor: pointer;
+}
+
+.audio-volume-slider::-moz-range-track {
+  background: transparent;
+  border: none;
+  height: 4px;
+}
+
+.audio-label {
+  font-family: 'Russo One', sans-serif;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  opacity: 0.6;
 }
 
 @media (max-width: 600px) {
-  .audio-toggle {
-    bottom: 16px;
-    left: 16px;
-    width: 42px;
-    height: 42px;
-    font-size: 1.1rem;
+  .audio-control {
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .audio-toggle-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .audio-icon-svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .audio-slider-wrap {
+    width: 80px;
+  }
+
+  .audio-label {
+    display: none;
   }
 }

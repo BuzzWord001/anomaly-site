@@ -1,5 +1,5 @@
 /* ===== A.N.O.M.A.L.Y. ОНЛАЙН — Atmospheric Audio Engine ===== */
-/* Procedural ambient: drone, wind, creatures, thunder, static    */
+/* Procedural ambient: drone, wind, creatures, thunder             */
 
 const ZoneAudio = (() => {
   let ctx = null;
@@ -7,26 +7,23 @@ const ZoneAudio = (() => {
   let isPlaying = false;
   let isUnlocked = false;
   let timers = [];
+  let volume = 0.35;
 
   // Layer gain nodes
-  let droneGain, windGain, creaturesGain, thunderGain, staticGain;
-
-  const MASTER_VOLUME = 0.35;
+  let droneGain, windGain, creaturesGain, thunderGain;
 
   function init() {
     if (ctx) return;
     ctx = new (window.AudioContext || window.webkitAudioContext)();
 
     masterGain = ctx.createGain();
-    masterGain.gain.value = MASTER_VOLUME;
+    masterGain.gain.value = volume;
     masterGain.connect(ctx.destination);
 
-    // Layer gains
     droneGain = createGain(0.5);
     windGain = createGain(0.3);
     creaturesGain = createGain(0.15);
     thunderGain = createGain(0.4);
-    staticGain = createGain(0.06);
   }
 
   function createGain(vol) {
@@ -36,7 +33,6 @@ const ZoneAudio = (() => {
     return g;
   }
 
-  // --- Noise buffer generator ---
   function noiseBuffer(duration) {
     const len = ctx.sampleRate * duration;
     const buf = ctx.createBuffer(1, len, ctx.sampleRate);
@@ -49,7 +45,6 @@ const ZoneAudio = (() => {
 
   // ========== LAYER 1: DARK DRONE ==========
   function startDrone() {
-    // Base sub-drone (very low frequency)
     const osc1 = ctx.createOscillator();
     osc1.type = 'sawtooth';
     osc1.frequency.value = 38;
@@ -62,7 +57,6 @@ const ZoneAudio = (() => {
     osc3.type = 'triangle';
     osc3.frequency.value = 73;
 
-    // Slow LFO for eerie modulation
     const lfo = ctx.createOscillator();
     lfo.type = 'sine';
     lfo.frequency.value = 0.07;
@@ -72,13 +66,11 @@ const ZoneAudio = (() => {
     lfoGain.connect(osc1.frequency);
     lfoGain.connect(osc3.frequency);
 
-    // Deep lowpass filter
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.value = 120;
     filter.Q.value = 2;
 
-    // LFO on filter for breathing effect
     const filterLfo = ctx.createOscillator();
     filterLfo.type = 'sine';
     filterLfo.frequency.value = 0.03;
@@ -87,7 +79,6 @@ const ZoneAudio = (() => {
     filterLfo.connect(filterLfoGain);
     filterLfoGain.connect(filter.frequency);
 
-    // Mix oscillators
     const mix = ctx.createGain();
     mix.gain.value = 0.35;
 
@@ -103,7 +94,6 @@ const ZoneAudio = (() => {
     lfo.start();
     filterLfo.start();
 
-    // Second layer: very deep rumble with noise
     const rumbleNoise = ctx.createBufferSource();
     rumbleNoise.buffer = noiseBuffer(4);
     rumbleNoise.loop = true;
@@ -125,13 +115,11 @@ const ZoneAudio = (() => {
     noise.buffer = noiseBuffer(5);
     noise.loop = true;
 
-    // Bandpass for wind character
     const bp = ctx.createBiquadFilter();
     bp.type = 'bandpass';
     bp.frequency.value = 600;
     bp.Q.value = 0.5;
 
-    // Modulate wind intensity
     const lfo = ctx.createOscillator();
     lfo.type = 'sine';
     lfo.frequency.value = 0.15;
@@ -140,7 +128,6 @@ const ZoneAudio = (() => {
     lfo.connect(lfoGain);
     lfoGain.connect(bp.frequency);
 
-    // Volume modulation for gusts
     const volLfo = ctx.createOscillator();
     volLfo.type = 'sine';
     volLfo.frequency.value = 0.08;
@@ -159,7 +146,6 @@ const ZoneAudio = (() => {
     lfo.start();
     volLfo.start();
 
-    // Second wind layer - higher howl
     const noise2 = ctx.createBufferSource();
     noise2.buffer = noiseBuffer(3);
     noise2.loop = true;
@@ -200,7 +186,6 @@ const ZoneAudio = (() => {
       case 3: playDistantHowl(); break;
     }
 
-    // Next creature sound in 8-25 seconds
     const next = 8000 + Math.random() * 17000;
     timers.push(setTimeout(playCreatureSound, next));
   }
@@ -226,7 +211,6 @@ const ZoneAudio = (() => {
     osc.connect(filter);
     filter.connect(env);
     env.connect(creaturesGain);
-
     osc.start(now);
     osc.stop(now + 2);
   }
@@ -261,7 +245,6 @@ const ZoneAudio = (() => {
     osc.connect(filter);
     filter.connect(env);
     env.connect(creaturesGain);
-
     osc.start(now);
     vibrato.start(now);
     osc.stop(now + 1.8);
@@ -270,7 +253,6 @@ const ZoneAudio = (() => {
 
   function playChirpClick() {
     const now = ctx.currentTime;
-    // Series of rapid clicks (like a bloodsucker echo-location)
     for (let i = 0; i < 4 + Math.floor(Math.random() * 5); i++) {
       const t = now + i * (0.08 + Math.random() * 0.06);
       const osc = ctx.createOscillator();
@@ -289,7 +271,6 @@ const ZoneAudio = (() => {
       osc.connect(filter);
       filter.connect(env);
       env.connect(creaturesGain);
-
       osc.start(t);
       osc.stop(t + 0.04);
     }
@@ -332,7 +313,6 @@ const ZoneAudio = (() => {
     mix.connect(filter);
     filter.connect(env);
     env.connect(creaturesGain);
-
     osc.start(now);
     osc2.start(now);
     osc.stop(now + dur);
@@ -345,7 +325,6 @@ const ZoneAudio = (() => {
 
     const now = ctx.currentTime;
 
-    // Crack (sharp noise burst)
     const crack = ctx.createBufferSource();
     crack.buffer = noiseBuffer(0.3);
     const crackFilter = ctx.createBiquadFilter();
@@ -360,7 +339,6 @@ const ZoneAudio = (() => {
     crackEnv.connect(thunderGain);
     crack.start(now);
 
-    // Rumble (low filtered noise, longer)
     const rumble = ctx.createBufferSource();
     rumble.buffer = noiseBuffer(4);
     const rumbleFilter = ctx.createBiquadFilter();
@@ -377,104 +355,54 @@ const ZoneAudio = (() => {
     rumbleEnv.connect(thunderGain);
     rumble.start(now);
 
-    // Next thunder in 15-45 seconds
     const next = 15000 + Math.random() * 30000;
     timers.push(setTimeout(playThunder, next));
   }
 
-  // ========== LAYER 5: GEIGER / STATIC ==========
-  function startStatic() {
-    // Continuous low-level crackle
-    const noise = ctx.createBufferSource();
-    noise.buffer = noiseBuffer(2);
-    noise.loop = true;
-
-    const hp = ctx.createBiquadFilter();
-    hp.type = 'highpass';
-    hp.frequency.value = 4000;
-
-    const vol = ctx.createGain();
-    vol.gain.value = 0.3;
-
-    noise.connect(hp);
-    hp.connect(vol);
-    vol.connect(staticGain);
-    noise.start();
-
-    // Random geiger clicks
-    scheduleGeigerBurst();
-  }
-
-  function scheduleGeigerBurst() {
-    if (!isPlaying) return;
-
-    const now = ctx.currentTime;
-    const clicks = 2 + Math.floor(Math.random() * 8);
-
-    for (let i = 0; i < clicks; i++) {
-      const t = now + i * (0.04 + Math.random() * 0.12);
-      const osc = ctx.createOscillator();
-      osc.type = 'square';
-      osc.frequency.value = 2000 + Math.random() * 3000;
-
-      const env = ctx.createGain();
-      env.gain.setValueAtTime(0, t);
-      env.gain.linearRampToValueAtTime(0.4 + Math.random() * 0.3, t + 0.001);
-      env.gain.linearRampToValueAtTime(0, t + 0.008);
-
-      osc.connect(env);
-      env.connect(staticGain);
-      osc.start(t);
-      osc.stop(t + 0.01);
-    }
-
-    const next = 3000 + Math.random() * 10000;
-    timers.push(setTimeout(scheduleGeigerBurst, next));
-  }
-
   // ========== CONTROLS ==========
+  function setVolume(val) {
+    volume = val;
+    if (masterGain) {
+      masterGain.gain.setValueAtTime(volume, ctx.currentTime);
+    }
+    // Save preference
+    try { localStorage.setItem('zoneAudioVol', val); } catch(e) {}
+  }
+
   function start() {
     if (isPlaying) return;
     init();
 
-    if (ctx.state === 'suspended') {
-      ctx.resume();
-    }
+    if (ctx.state === 'suspended') ctx.resume();
 
-    // Fade in
     masterGain.gain.setValueAtTime(0, ctx.currentTime);
-    masterGain.gain.linearRampToValueAtTime(MASTER_VOLUME, ctx.currentTime + 2);
+    masterGain.gain.linearRampToValueAtTime(volume, ctx.currentTime + 2);
 
     startDrone();
     startWind();
-    startStatic();
 
-    // Delayed start for creatures and thunder
     timers.push(setTimeout(playCreatureSound, 5000 + Math.random() * 5000));
     timers.push(setTimeout(playThunder, 3000 + Math.random() * 8000));
 
     isPlaying = true;
     isUnlocked = true;
-    updateButton();
+    updateUI();
   }
 
   function stop() {
     if (!isPlaying || !ctx) return;
     isPlaying = false;
 
-    // Fade out
     masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1);
 
-    // Clear scheduled events
     timers.forEach(t => clearTimeout(t));
     timers = [];
 
-    // Suspend context after fade
     setTimeout(() => {
       if (!isPlaying && ctx) ctx.suspend();
     }, 1200);
 
-    updateButton();
+    updateUI();
   }
 
   function toggle() {
@@ -482,48 +410,117 @@ const ZoneAudio = (() => {
     else start();
   }
 
-  // ========== UI BUTTON ==========
-  function updateButton() {
-    const btn = document.getElementById('audioToggle');
+  // ========== UI ==========
+  function updateUI() {
+    const btn = document.getElementById('audioToggleBtn');
+    const slider = document.getElementById('audioVolumeSlider');
     if (!btn) return;
-    const icon = btn.querySelector('.audio-toggle-icon');
-    if (icon) {
-      icon.innerHTML = isPlaying ? '&#9835;' : '&#9836;';
+
+    btn.classList.toggle('active', isPlaying);
+
+    // Update icon SVG
+    const svg = btn.querySelector('.audio-icon-svg');
+    if (svg) {
+      svg.innerHTML = isPlaying ? getSpeakerOnSVG() : getSpeakerOffSVG();
     }
-    btn.classList.toggle('audio-muted', !isPlaying);
-    btn.title = isPlaying ? 'Выключить звук Зоны' : 'Включить звук Зоны';
+
+    if (slider) {
+      slider.style.opacity = isPlaying ? '1' : '0.4';
+    }
   }
 
-  function createButton() {
-    const btn = document.createElement('button');
-    btn.className = 'audio-toggle audio-muted';
-    btn.id = 'audioToggle';
-    btn.title = 'Включить звук Зоны';
-    btn.innerHTML = '<span class="audio-toggle-icon">&#9836;</span>';
-    btn.addEventListener('click', toggle);
-    document.body.appendChild(btn);
+  function getSpeakerOnSVG() {
+    return `<path d="M3 9v6h4l5 5V4L7 9H3z" fill="currentColor"/>
+      <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" fill="currentColor" opacity="0.7"/>
+      <path d="M19 12c0 3.53-2.04 6.58-5 8.03v2.21c4.01-1.82 6.8-5.86 6.8-10.24S18.01 3.58 14 1.76v2.22c2.96 1.46 5 4.5 5 8.02z" fill="currentColor" opacity="0.4"/>`;
+  }
 
-    // Auto-start on first user interaction (click anywhere)
+  function getSpeakerOffSVG() {
+    return `<path d="M3 9v6h4l5 5V4L7 9H3z" fill="currentColor" opacity="0.4"/>
+      <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v1.79l4.72 4.72c.14-.5.22-1.03.28-1.48z" fill="currentColor" opacity="0.2"/>
+      <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>`;
+  }
+
+  function createUI() {
+    // Load saved volume
+    try {
+      const saved = localStorage.getItem('zoneAudioVol');
+      if (saved !== null) volume = parseFloat(saved);
+    } catch(e) {}
+
+    // Create container in header
+    const header = document.querySelector('.header-content');
+    if (!header) return;
+
+    const panel = document.createElement('div');
+    panel.className = 'audio-control';
+    panel.innerHTML = `
+      <button class="audio-toggle-btn" id="audioToggleBtn" title="ЗВУК ЗОНЫ">
+        <svg class="audio-icon-svg" viewBox="0 0 24 24" width="20" height="20">
+          ${getSpeakerOffSVG()}
+        </svg>
+      </button>
+      <div class="audio-slider-wrap">
+        <div class="audio-slider-track">
+          <div class="audio-slider-fill" id="audioSliderFill"></div>
+          <div class="audio-slider-glow" id="audioSliderGlow"></div>
+        </div>
+        <input type="range" class="audio-volume-slider" id="audioVolumeSlider"
+          min="0" max="100" value="${Math.round(volume * 100)}"
+          title="Громкость">
+      </div>
+      <span class="audio-label">ЗОНА</span>
+    `;
+
+    header.appendChild(panel);
+
+    // Events
+    document.getElementById('audioToggleBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggle();
+    });
+
+    const slider = document.getElementById('audioVolumeSlider');
+    const fill = document.getElementById('audioSliderFill');
+    const glow = document.getElementById('audioSliderGlow');
+
+    function updateSliderVisual() {
+      const pct = slider.value + '%';
+      fill.style.width = pct;
+      glow.style.width = pct;
+    }
+    updateSliderVisual();
+
+    slider.addEventListener('input', (e) => {
+      e.stopPropagation();
+      const val = parseInt(slider.value) / 100;
+      setVolume(val);
+      updateSliderVisual();
+
+      // Auto-start if dragging slider while stopped
+      if (!isPlaying && val > 0) start();
+      if (isPlaying && val === 0) stop();
+    });
+
+    // Prevent slider click from propagating
+    slider.addEventListener('click', (e) => e.stopPropagation());
+
+    // Auto-start on first user interaction
     const autoStart = () => {
-      if (!isUnlocked) {
-        start();
-      }
+      if (!isUnlocked) start();
       document.removeEventListener('click', autoStart);
     };
-    // Slight delay so the button click itself triggers it
     setTimeout(() => {
-      if (!isUnlocked) {
-        document.addEventListener('click', autoStart);
-      }
+      if (!isUnlocked) document.addEventListener('click', autoStart);
     }, 500);
   }
 
   // Init on DOM ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', createButton);
+    document.addEventListener('DOMContentLoaded', createUI);
   } else {
-    createButton();
+    createUI();
   }
 
-  return { start, stop, toggle, isPlaying: () => isPlaying };
+  return { start, stop, toggle, setVolume, isPlaying: () => isPlaying };
 })();
