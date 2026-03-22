@@ -87,9 +87,9 @@ const ZoneAudio = (() => {
     if (!panel) return;
 
     panel.innerHTML = `
-      <button class="audio-toggle-btn" id="audioToggleBtn" title="ЗВУК ЗОНЫ">
+      <button class="audio-toggle-btn active" id="audioToggleBtn" title="ЗВУК ЗОНЫ">
         <svg class="audio-icon-svg" viewBox="0 0 24 24" width="20" height="20">
-          ${getIconOff()}
+          ${getIconOn()}
         </svg>
         <span class="audio-glitch-layer"></span>
         <span class="audio-glitch-layer g2"></span>
@@ -138,8 +138,13 @@ const ZoneAudio = (() => {
 
     function autoStart() {
       if (isUnlocked) return;
-      start();
-      events.forEach(ev => document.removeEventListener(ev, autoStart, { capture: true }));
+      initAudio();
+      audio.play().then(() => {
+        isPlaying = true;
+        isUnlocked = true;
+        updateUI();
+        events.forEach(ev => document.removeEventListener(ev, autoStart, { capture: true }));
+      }).catch(() => {});
     }
 
     // Try immediate playback
@@ -149,7 +154,7 @@ const ZoneAudio = (() => {
       isUnlocked = true;
       updateUI();
     }).catch(() => {
-      // Blocked — wait for user gesture
+      // Blocked — wait for ANY user gesture, then auto-play
       events.forEach(ev => {
         document.addEventListener(ev, autoStart, { capture: true, passive: true });
       });
