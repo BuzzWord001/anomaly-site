@@ -368,6 +368,17 @@
   let arcs = [], sparks = [], orbitArcs = [];
   let arcTimer = 0, sparkTimer = 0, orbitTimer = 0;
 
+  // Anomalous color palette
+  const anomColors = [
+    { core: [200,230,255], mid: [60,140,255],  out: [20,60,220],  glow: [80,150,255]  }, // blue
+    { core: [255,200,255], mid: [200,60,255],  out: [120,20,220], glow: [180,80,255]  }, // purple
+    { core: [200,255,220], mid: [40,220,100],  out: [15,160,60],  glow: [60,255,120]  }, // green
+    { core: [255,230,200], mid: [255,140,40],  out: [200,80,10],  glow: [255,160,60]  }, // amber
+    { core: [255,200,200], mid: [255,50,80],   out: [200,15,40],  glow: [255,80,100]  }, // crimson
+    { core: [200,255,255], mid: [40,220,220],  out: [10,150,180], glow: [60,240,240]  }, // cyan
+  ];
+  function randColor() { return anomColors[Math.floor(Math.random() * anomColors.length)]; }
+
   function resize() {
     const rect = canvas.parentElement.getBoundingClientRect();
     barW = rect.width || 200;
@@ -441,9 +452,10 @@
     ctx.fillStyle = `rgba(60, 120, 255, ${ePulse})`;
     ctx.fillRect(0, 0, barW, barH);
 
-    // 2. Crawling electric veins — thin lines that slowly drift across
+    // 2. Crawling electric veins — multi-color, slowly drift
     const veinCount = 12;
     for (let v = 0; v < veinCount; v++) {
+      const vc = anomColors[v % anomColors.length];
       const vPhase = t * 0.0004 + v * 1.3;
       const vx = ((vPhase * (0.8 + v * 0.1)) % 1) * barW;
       const vy1 = Math.sin(t * 0.001 + v * 0.7) * barH * 0.3 + barH * 0.3;
@@ -452,7 +464,6 @@
 
       ctx.beginPath();
       ctx.moveTo(vx, vy1);
-      // Jagged path
       const segs = 4 + Math.floor(Math.random() * 3);
       for (let s = 1; s <= segs; s++) {
         ctx.lineTo(
@@ -460,32 +471,34 @@
           vy1 + (vy2 - vy1) * (s / segs) + (Math.random() - 0.5) * 6
         );
       }
-      ctx.strokeStyle = `rgba(140, 190, 255, ${va})`;
+      ctx.strokeStyle = `rgba(${vc.mid[0]}, ${vc.mid[1]}, ${vc.mid[2]}, ${va})`;
       ctx.lineWidth = 0.5 + Math.random() * 0.5;
-      ctx.shadowColor = `rgba(80, 150, 255, ${va * 0.8})`;
+      ctx.shadowColor = `rgba(${vc.glow[0]}, ${vc.glow[1]}, ${vc.glow[2]}, ${va * 0.8})`;
       ctx.shadowBlur = 4;
       ctx.stroke();
     }
 
-    // 3. Slow pulsing glow nodes — electric charge pooling
+    // 3. Slow pulsing glow nodes — multi-color charge pooling
     for (let n = 0; n < 6; n++) {
+      const nc = anomColors[n % anomColors.length];
       const nx = (Math.sin(t * 0.0003 * (n + 1) + n * 1.1) * 0.5 + 0.5) * barW;
       const ny = (Math.cos(t * 0.0004 * (n + 1) + n * 0.8) * 0.3 + 0.5) * barH;
       const nPulse = 0.06 + 0.05 * Math.sin(t * 0.0025 + n * 1.5);
       const nr = 10 + 8 * Math.sin(t * 0.002 + n);
       const ng = ctx.createRadialGradient(nx, ny, 0, nx, ny, nr);
-      ng.addColorStop(0, `rgba(120, 180, 255, ${nPulse})`);
-      ng.addColorStop(0.5, `rgba(60, 100, 220, ${nPulse * 0.4})`);
+      ng.addColorStop(0, `rgba(${nc.glow[0]}, ${nc.glow[1]}, ${nc.glow[2]}, ${nPulse})`);
+      ng.addColorStop(0.5, `rgba(${nc.out[0]}, ${nc.out[1]}, ${nc.out[2]}, ${nPulse * 0.4})`);
       ng.addColorStop(1, 'transparent');
       ctx.fillStyle = ng;
       ctx.fillRect(nx - nr, ny - nr, nr * 2, nr * 2);
     }
 
-    // 4. Surface crackle — tiny micro-arcs on top surface
+    // 4. Surface crackle — multi-color micro-arcs on top
     const cracklePulse = Math.sin(t * 0.002);
     if (cracklePulse > 0.3) {
       const numCrackles = 3 + Math.floor(cracklePulse * 4);
       for (let c = 0; c < numCrackles; c++) {
+        const cc = anomColors[Math.floor(Math.random() * anomColors.length)];
         const cx = Math.random() * barW;
         const cy = 1 + Math.random() * 4;
         const cLen = 5 + Math.random() * 15;
@@ -499,9 +512,9 @@
           ctx.lineTo(crX, crY);
         }
         const ca = 0.15 + 0.1 * Math.random();
-        ctx.strokeStyle = `rgba(180, 220, 255, ${ca})`;
+        ctx.strokeStyle = `rgba(${cc.core[0]}, ${cc.core[1]}, ${cc.core[2]}, ${ca})`;
         ctx.lineWidth = 0.5;
-        ctx.shadowColor = `rgba(100, 170, 255, ${ca})`;
+        ctx.shadowColor = `rgba(${cc.glow[0]}, ${cc.glow[1]}, ${cc.glow[2]}, ${ca})`;
         ctx.shadowBlur = 3;
         ctx.stroke();
       }
@@ -544,7 +557,7 @@
         y: OY + yBase + (Math.random() - 0.5) * (barH * 1.4)
       });
     }
-    return { pts, life: 0, maxLife: 15 + Math.random() * 15, width: 1.5 + Math.random() * 2 };
+    return { pts, life: 0, maxLife: 15 + Math.random() * 15, width: 1.5 + Math.random() * 2, color: randColor() };
   }
 
   // ---- ORBIT ARCS — circulate AROUND the bar ----
@@ -567,13 +580,14 @@
         y: cy + Math.sin(angle) * radiusY + (Math.random() - 0.5) * 5
       });
     }
-    return { pts, life: 0, maxLife: 18 + Math.random() * 14, width: 1 + Math.random() * 1.5 };
+    return { pts, life: 0, maxLife: 18 + Math.random() * 14, width: 1 + Math.random() * 1.5, color: randColor() };
   }
 
   // ---- SPARKS ----
   function makeSpark(fromEdge) {
     const x = fromEdge ? OX + barW : OX + Math.random() * barW;
     const side = fromEdge ? 1 : (Math.random() < 0.5 ? -1 : 1);
+    const c = randColor();
     return {
       x,
       y: OY + (fromEdge ? Math.random() * barH : (side < 0 ? 0 : barH)),
@@ -581,15 +595,16 @@
       vy: fromEdge ? (Math.random() - 0.5) * 5 : side * -(2 + Math.random() * 4),
       life: 0,
       maxLife: 10 + Math.random() * 18,
-      size: 0.8 + Math.random() * 2
+      size: 0.8 + Math.random() * 2,
+      color: c
     };
   }
 
-  // ---- DRAW ARC (blue electric) ----
-  function drawArc(points, alpha, width) {
+  // ---- DRAW ARC (multi-color anomalous) ----
+  function drawArc(points, alpha, width, color) {
     if (points.length < 2) return;
+    const c = color || anomColors[0];
 
-    // Jitter for electric feel
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
     for (let i = 1; i < points.length; i++) {
@@ -599,24 +614,23 @@
       );
     }
 
-    // Outer glow (wide, deep blue)
-    ctx.strokeStyle = `rgba(20, 60, 220, ${alpha * 0.3})`;
+    // Outer glow
+    ctx.strokeStyle = `rgba(${c.out[0]}, ${c.out[1]}, ${c.out[2]}, ${alpha * 0.3})`;
     ctx.lineWidth = width + 6;
-    ctx.shadowColor = `rgba(40, 100, 255, ${alpha * 0.6})`;
+    ctx.shadowColor = `rgba(${c.glow[0]}, ${c.glow[1]}, ${c.glow[2]}, ${alpha * 0.6})`;
     ctx.shadowBlur = 25;
     ctx.stroke();
 
-    // Mid glow (electric blue)
-    ctx.strokeStyle = `rgba(60, 140, 255, ${alpha * 0.5})`;
+    // Mid glow
+    ctx.strokeStyle = `rgba(${c.mid[0]}, ${c.mid[1]}, ${c.mid[2]}, ${alpha * 0.5})`;
     ctx.lineWidth = width + 3;
-    ctx.shadowColor = `rgba(80, 160, 255, ${alpha * 0.5})`;
     ctx.shadowBlur = 12;
     ctx.stroke();
 
-    // Hot core (white-blue)
-    ctx.strokeStyle = `rgba(200, 230, 255, ${alpha})`;
+    // Hot core
+    ctx.strokeStyle = `rgba(${c.core[0]}, ${c.core[1]}, ${c.core[2]}, ${alpha})`;
     ctx.lineWidth = width;
-    ctx.shadowColor = `rgba(150, 200, 255, ${alpha})`;
+    ctx.shadowColor = `rgba(${c.glow[0]}, ${c.glow[1]}, ${c.glow[2]}, ${alpha})`;
     ctx.shadowBlur = 8;
     ctx.stroke();
 
@@ -650,7 +664,7 @@
       else if (a.life < 7) al = 0.8;
       else al = Math.max(0, 1 - (a.life - 7) / (a.maxLife - 7));
       if (al <= 0) { arcs.splice(i, 1); continue; }
-      drawArc(a.pts, al, a.width);
+      drawArc(a.pts, al, a.width, a.color);
     }
 
     // 3. Orbit arcs — rare, circulate around the bar
@@ -669,7 +683,7 @@
       else if (o.life < 8) al = 0.7;
       else al = Math.max(0, 1 - (o.life - 8) / (o.maxLife - 8));
       if (al <= 0) { orbitArcs.splice(i, 1); continue; }
-      drawArc(o.pts, al * 0.7, o.width);
+      drawArc(o.pts, al * 0.7, o.width, o.color);
     }
 
     // 4. Sparks — blue, from surface and edge (less frequent)
@@ -689,26 +703,28 @@
       const fade = 1 - s.life / s.maxLife;
       if (fade <= 0) { sparks.splice(i, 1); continue; }
 
-      // Blue glow
+      const sc = s.color || anomColors[0];
+      // Color glow
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.size * 4, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(60, 120, 255, ${fade * 0.12})`;
+      ctx.fillStyle = `rgba(${sc.mid[0]}, ${sc.mid[1]}, ${sc.mid[2]}, ${fade * 0.12})`;
       ctx.fill();
-      // White-blue core
+      // Bright core
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(210, 230, 255, ${fade * 0.9})`;
-      ctx.shadowColor = `rgba(80, 150, 255, ${fade})`;
+      ctx.fillStyle = `rgba(${sc.core[0]}, ${sc.core[1]}, ${sc.core[2]}, ${fade * 0.9})`;
+      ctx.shadowColor = `rgba(${sc.glow[0]}, ${sc.glow[1]}, ${sc.glow[2]}, ${fade})`;
       ctx.shadowBlur = 5;
       ctx.fill();
       ctx.shadowBlur = 0;
     }
 
-    // 5. Edge meniscus glow (blue-white)
+    // 5. Edge meniscus glow — color cycles slowly
+    const ec = anomColors[Math.floor((time * 0.0002) % anomColors.length)];
     const ep = 0.2 + 0.12 * Math.sin(time * 0.005);
     const eg = ctx.createRadialGradient(OX + barW, OY + barH / 2, 0, OX + barW, OY + barH / 2, 25);
-    eg.addColorStop(0, `rgba(120, 180, 255, ${ep})`);
-    eg.addColorStop(0.5, `rgba(40, 80, 200, ${ep * 0.3})`);
+    eg.addColorStop(0, `rgba(${ec.glow[0]}, ${ec.glow[1]}, ${ec.glow[2]}, ${ep})`);
+    eg.addColorStop(0.5, `rgba(${ec.out[0]}, ${ec.out[1]}, ${ec.out[2]}, ${ep * 0.3})`);
     eg.addColorStop(1, 'transparent');
     ctx.fillStyle = eg;
     ctx.fillRect(OX + barW - 25, OY - 10, 50, barH + 20);
