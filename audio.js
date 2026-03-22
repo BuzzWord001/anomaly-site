@@ -625,13 +625,33 @@ const ZoneAudio = (() => {
 
     slider.addEventListener('click', (e) => e.stopPropagation());
 
-    const autoStart = () => {
-      if (!isUnlocked) start();
-      document.removeEventListener('click', autoStart);
-    };
-    setTimeout(() => {
-      if (!isUnlocked) document.addEventListener('click', autoStart);
-    }, 500);
+    // --- Auto-start: try immediately, then on ANY user interaction ---
+    const events = ['click', 'touchstart', 'mousemove', 'scroll', 'keydown'];
+
+    function autoStart() {
+      if (isUnlocked) return;
+      start();
+      events.forEach(ev => document.removeEventListener(ev, autoStart, { capture: true }));
+    }
+
+    // Try to play right away (works if browser allows autoplay)
+    try {
+      start();
+      // If AudioContext got suspended, set up listeners
+      if (ctx && ctx.state === 'suspended') {
+        isPlaying = false;
+        isUnlocked = false;
+        updateUI();
+        events.forEach(ev => {
+          document.addEventListener(ev, autoStart, { capture: true, once: false, passive: true });
+        });
+      }
+    } catch(e) {
+      // Autoplay blocked — wait for interaction
+      events.forEach(ev => {
+        document.addEventListener(ev, autoStart, { capture: true, once: false, passive: true });
+      });
+    }
   }
 
   if (document.readyState === 'loading') {
