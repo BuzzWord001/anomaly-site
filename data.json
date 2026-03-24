@@ -17,7 +17,7 @@
       "name": "Elbics",
       "role": "Lead Developer",
       "focus": "Программирование, анимации, визуальные эффекты, архитектура",
-      "currentTask": "CI/CD FULL GREEN — все 17 stages pass",
+      "currentTask": "FULL RAID LOOP — first ever end-to-end PIE test with...",
       "avatar": null
     },
     {
@@ -28,7 +28,7 @@
       "avatar": null
     }
   ],
-  "lastUpdated": "2026-03-24 08:42 МСК",
+  "lastUpdated": "2026-03-24 10:02 МСК",
   "lastSyncBy": "auto-sync",
   "phases": [
     {
@@ -333,7 +333,13 @@
     {
       "date": "2026-03-24",
       "entries": [
-        "Elbics: CI/CD FULL GREEN — все 17 stages pass"
+        "Elbics: CI/CD FULL GREEN — все 17 stages pass",
+        "Elbics: FULL RAID LOOP — first ever end-to-end PIE test with...",
+        "repository_dispatch для мгновенного sync от stalker-extraction (Лир)",
+        "data.json через GitHub API — без кеша вообще (Лир)",
+        "обновлён changelog за 23 марта + задачи разработчиков (Лир)",
+        "changelog обновляется при каждом sync (Лир)",
+        "мгновенное обновление данных — полное исправление (Лир)"
       ]
     },
     {
