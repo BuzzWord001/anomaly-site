@@ -17,7 +17,7 @@
       "name": "Elbics",
       "role": "Lead Developer",
       "focus": "Программирование, анимации, визуальные эффекты, архитектура",
-      "currentTask": "FULL AUDIT фаз 1-17",
+      "currentTask": "Phase 17.5 COMPLETE — all 7 plans done, all debt ite...",
       "avatar": null
     },
     {
@@ -28,7 +28,7 @@
       "avatar": null
     }
   ],
-  "lastUpdated": "2026-03-24 15:02 МСК",
+  "lastUpdated": "2026-03-24 16:55 МСК",
   "lastSyncBy": "auto-sync",
   "phases": [
     {
@@ -189,9 +189,9 @@
       "name": "Debt Payoff",
       "description": "Доработка визуальных эффектов, материалов, звуков",
       "milestone": "v2.0",
-      "status": "in_progress",
+      "status": "done",
       "plans": 7,
-      "plansDone": 3
+      "plansDone": 7
     },
     {
       "id": 18,
@@ -340,7 +340,9 @@
         "обновлён changelog за 23 марта + задачи разработчиков (Лир)",
         "changelog обновляется при каждом sync (Лир)",
         "мгновенное обновление данных — полное исправление (Лир)",
-        "Elbics: FULL AUDIT фаз 1-17"
+        "Elbics: FULL AUDIT фаз 1-17",
+        "Phase 17.5 COMPLETE — Debt Payoff & Honest Completion (AUDIT 2026-03-21) (7/7 планов)",
+        "Elbics: Phase 17.5 COMPLETE — all 7 plans done, all debt ite..."
       ]
     },
     {
