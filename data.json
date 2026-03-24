@@ -17,7 +17,7 @@
       "name": "Elbics",
       "role": "Lead Developer",
       "focus": "Программирование, анимации, визуальные эффекты, архитектура",
-      "currentTask": "FULL RAID LOOP — first ever end-to-end PIE test with...",
+      "currentTask": "FULL AUDIT фаз 1-17",
       "avatar": null
     },
     {
@@ -28,7 +28,7 @@
       "avatar": null
     }
   ],
-  "lastUpdated": "2026-03-24 11:06 МСК",
+  "lastUpdated": "2026-03-24 12:27 МСК",
   "lastSyncBy": "auto-sync",
   "phases": [
     {
@@ -339,7 +339,8 @@
         "data.json через GitHub API — без кеша вообще (Лир)",
         "обновлён changelog за 23 марта + задачи разработчиков (Лир)",
         "changelog обновляется при каждом sync (Лир)",
-        "мгновенное обновление данных — полное исправление (Лир)"
+        "мгновенное обновление данных — полное исправление (Лир)",
+        "Elbics: FULL AUDIT фаз 1-17"
       ]
     },
     {
