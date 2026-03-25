@@ -17,7 +17,7 @@
       "name": "Elbics",
       "role": "Lead Developer",
       "focus": "Программирование, анимации, визуальные эффекты, архитектура",
-      "currentTask": "Marathon-style raid loop — full backend integration",
+      "currentTask": "Home — голосовой ввод через Handy STT → автоотправка...",
       "avatar": null
     },
     {
@@ -28,7 +28,7 @@
       "avatar": null
     }
   ],
-  "lastUpdated": "2026-03-26 01:34 МСК",
+  "lastUpdated": "2026-03-26 01:41 МСК",
   "lastSyncBy": "auto-sync",
   "phases": [
     {
@@ -330,6 +330,12 @@
     }
   ],
   "changelog": [
+    {
+      "date": "2026-03-26",
+      "entries": [
+        "Elbics: Home — голосовой ввод через Handy STT → автоотправка..."
+      ]
+    },
     {
       "date": "2026-03-25",
       "entries": [
