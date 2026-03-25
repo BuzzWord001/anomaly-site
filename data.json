@@ -17,7 +17,7 @@
       "name": "Elbics",
       "role": "Lead Developer",
       "focus": "Программирование, анимации, визуальные эффекты, архитектура",
-      "currentTask": "Phase 17.5 COMPLETE — all 7 plans done, all debt ite...",
+      "currentTask": "Marathon-style raid loop — full backend integration",
       "avatar": null
     },
     {
@@ -28,7 +28,7 @@
       "avatar": null
     }
   ],
-  "lastUpdated": "2026-03-25 10:14 МСК",
+  "lastUpdated": "2026-03-25 11:05 МСК",
   "lastSyncBy": "auto-sync",
   "phases": [
     {
@@ -330,6 +330,12 @@
     }
   ],
   "changelog": [
+    {
+      "date": "2026-03-25",
+      "entries": [
+        "Elbics: Marathon-style raid loop — full backend integration"
+      ]
+    },
     {
       "date": "2026-03-24",
       "entries": [
