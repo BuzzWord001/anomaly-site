@@ -24,11 +24,11 @@
       "name": "Лир",
       "role": "Level Design / UI",
       "focus": "Карты, интерфейс, окружение, освещение",
-      "currentTask": "Firebase чат запущен — реальная синхронизация сообще...",
+      "currentTask": "Карта Чернобыля — heightmap импортирован, 16x32 км 1",
       "avatar": null
     }
   ],
-  "lastUpdated": "2026-03-27 01:58 МСК",
+  "lastUpdated": "2026-03-27 02:29 МСК",
   "lastSyncBy": "auto-sync",
   "phases": [
     {
@@ -330,6 +330,12 @@
     }
   ],
   "changelog": [
+    {
+      "date": "2026-03-27",
+      "entries": [
+        "Лир: Карта Чернобыля — heightmap импортирован, 16x32 км 1"
+      ]
+    },
     {
       "date": "2026-03-26",
       "entries": [
