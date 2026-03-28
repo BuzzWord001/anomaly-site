@@ -17,7 +17,7 @@
       "name": "Elbics",
       "role": "Lead Developer",
       "focus": "Программирование, анимации, визуальные эффекты, архитектура",
-      "currentTask": "Home — голосовой ввод через Handy STT → автоотправка...",
+      "currentTask": "Paws.kz project created",
       "avatar": null
     },
     {
@@ -28,7 +28,7 @@
       "avatar": null
     }
   ],
-  "lastUpdated": "2026-03-28 12:35 МСК",
+  "lastUpdated": "2026-03-28 13:03 МСК",
   "lastSyncBy": "auto-sync",
   "phases": [
     {
@@ -330,6 +330,12 @@
     }
   ],
   "changelog": [
+    {
+      "date": "2026-03-28",
+      "entries": [
+        "Elbics: Paws.kz project created"
+      ]
+    },
     {
       "date": "2026-03-27",
       "entries": [
