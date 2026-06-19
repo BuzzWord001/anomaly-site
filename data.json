@@ -28,7 +28,7 @@
       "avatar": null
     }
   ],
-  "lastUpdated": "2026-06-19 12:18 МСК",
+  "lastUpdated": "2026-06-19 12:47 МСК",
   "lastSyncBy": "auto-sync",
   "phases": [
     {
@@ -189,9 +189,9 @@
       "name": "Debt Payoff",
       "description": "Доработка визуальных эффектов, материалов, звуков",
       "milestone": "v2.0",
-      "status": "done",
-      "plans": 7,
-      "plansDone": 7
+      "status": "in_progress",
+      "plans": 15,
+      "plansDone": 12
     },
     {
       "id": 18,
@@ -330,6 +330,12 @@
     }
   ],
   "changelog": [
+    {
+      "date": "2026-06-19",
+      "entries": [
+        "Phase 17.5 начата — Debt Payoff & Honest Completion (AUDIT 2026-03-21)"
+      ]
+    },
     {
       "date": "2026-03-28",
       "entries": [
